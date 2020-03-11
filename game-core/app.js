@@ -2,6 +2,8 @@ const WebSocket = require('ws');
 const server = new WebSocket.Server({ port: 8080 });
 const User = require('./models/user.js');
 const Room = require('./models/room.js');
+const Firebolt = require('./skills/firebolt.js');
+const Smash = require('./skills/smash.js');
 
 server.on('open', function open() {
     console.log('connected');
@@ -45,9 +47,11 @@ server.on('connection', function connection(ws, req) {
     ws.on('message', function message(message) {
         log(`received message ${message}`);
 
+        //  Should use a commnad factory here, but I am not writting a real game, so this is good enough for me to do a demo...
         if (message.startsWith('login ')) {
             var name = message.split(' ')[1];
-            var user = new User(name, 'Warrior', 120, 120, 1);
+            var user = new User(name, 'Warrior', 120, 120, 1, [new Firebolt('firebolt'), new Smash('smash')]);
+
             log(`created user object ${user.name}`);
             CLIENTS.set(user.name, ws);
             CLIENT_SOCKETS.set(clientName, user.name);
@@ -57,6 +61,14 @@ server.on('connection', function connection(ws, req) {
             var target = room.players.get(targetName);
             if(!target){
                 broadcast(CLIENT_SOCKETS.get(clientName), 'There no one called ' + targetName);
+            }else{
+                var me = room.players.get(CLIENT_SOCKETS.get(clientName));
+                if(me){
+                    var msg = me.attack(target);
+                    broadcast(msg.notifyUser, msg.message);
+                }else{
+                    broadcast(CLIENT_SOCKETS.get(clientName), 'W#@$F...something went wrong!');
+                }
             }
         }else if(message == 'stat'){
             var msg = room.players.get(CLIENT_SOCKETS.get(clientName)).toString();

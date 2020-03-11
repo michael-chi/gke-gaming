@@ -8,4 +8,7 @@ module.exports = class Skill{
     set name(value){
         this._name = value;
     }
+    attack(me, target){
+        
+    }
 }

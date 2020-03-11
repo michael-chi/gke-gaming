@@ -1,15 +1,20 @@
 const Skill = require('./skill.js');
 const User = require('../models/user.js');
 const InGameMessage = require('../utils/inGameMessage.js');
-
-module.exports = class FireBolt extends Skill {
+function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
+module.exports = class FireBolt {
     constructor(name){
-        super(name);
+        this._name = name;
+    }
+    get name(){
+        return this._name;
+    }
+    set name(value){
+        this._name = value;
     }
 
-    getRandomInt(max) {
-        return Math.floor(Math.random() * Math.floor(max));
-    }
     
     attack (me, target){
         var damage = getRandomInt(12);
@@ -20,6 +25,6 @@ module.exports = class FireBolt extends Skill {
             target.dying();
             message += `. ${target.name} is dying`;
         }
-        return new InGameMessage(message);
+        return new InGameMessage('*',message);
     }
 }

@@ -3,7 +3,7 @@ const STATE_NORMAL = 'normal';
 const STATE_DYING = 'dying';
 
 module.exports = class User {
-    constructor(name, playerClass, hp, mp, lv) {
+    constructor(name, playerClass, hp, mp, lv, skills) {
         this._name = name;
         this._class = playerClass;
         this._hp = hp;
@@ -11,31 +11,29 @@ module.exports = class User {
         this._lv = lv;
         this._state = STATE_NORMAL;
         this._self = this;
+        this._skills = skills;
     }
     dying(){
         this._state = STATE_DYING;
-        hp = 0;
+        this._hp = 0;
     }
     resurrection(){
         this._state = STATE_NORMAL;
-        hp = 200;
+        this._ = 200;
     }
-    get skills(){
+    skills(){
         return this._skills;
-    }
-    set skills(value){
-        this._skills = value;
     }
     attack(target){
         if(this._self._state != STATE_NORMAL){
             return new InGameMessage(this._self.name, 'you are dying, you can\'t do anything now...');
         }
-        for(var skill in this._skills){
-            if(Math.random() > 0.4){
-                return skill.attack (this._self, target);
+        for(var i =0; i < this._skills.length; i++){
+            if(Math.random() >= 0.2){
+                return this._skills[i].attack(this._self, target);
             }
         }
-        return new InGameMessage('*', '{0} stands still...'.format(this._self.name));
+        return new InGameMessage('*', `${this._self.name} stands still...`);
     }
     get name (){
         if (this._name) {
