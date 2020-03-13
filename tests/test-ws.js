@@ -7,8 +7,8 @@ const readline = require('readline').createInterface({
 var standard_input = process.stdin;
 standard_input.setEncoding('utf-8');
 
-
-socket = new WebSocket("ws://localhost:8080/ws");
+//34.102.250.216:80
+socket = new WebSocket("ws://34.102.250.216:80/ws");
 socket.onmessage = function (event) {
     console.log(event.data);
 };

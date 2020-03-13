@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: basic-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/websocket-services: mud
+    nginx.org/websocket-services: mud
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /ws
+        backend:
+          serviceName: mud
+          servicePort: 8080
+      - path: /
+        backend:
+          serviceName: mud
+          servicePort: 80
+  # rules:
+  # - http:
+  #     paths:
+  #     - path: /ws
+  #       backend:
+  #         serviceName: mud
+  #         servicePort: 8080

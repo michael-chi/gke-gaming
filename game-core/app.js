@@ -5,6 +5,10 @@ const Room = require('./models/room.js');
 const Firebolt = require('./skills/firebolt.js');
 const Smash = require('./skills/smash.js');
 
+const server_hc = new WebSocket.Server({ port: 80 , path:'/health'});
+
+console.log('starting websocket server...');
+
 server.on('open', function open() {
     console.log('connected');
 });
