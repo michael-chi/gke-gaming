@@ -3,14 +3,15 @@ kind: Ingress
 metadata:
   name: basic-ingress
   annotations:
-    nginx.ingress.kubernetes.io/websocket-services: mud
-    nginx.org/websocket-services: mud
+    # nginx.ingress.kubernetes.io/websocket-services: mud
+    # nginx.org/websocket-services: mud
+    # kubernetes.io/ingress.class: gce
 spec:
   backend:
     serviceName: mud
     servicePort: 8080
   rules:
-    - host: game.michaelchi.net
+    - host:
       http:
         paths:
         - path: /ws

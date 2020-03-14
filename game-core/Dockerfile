@@ -6,4 +6,4 @@ workdir app
 
 run npm install
 
-cmd ["node","app"]
+cmd ["node","app2"]
