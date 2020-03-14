@@ -22,9 +22,9 @@ spec:
             serviceName: mud
             servicePort: 8080
         - path: /
-        backend:
-          serviceName: mud
-          servicePort: 8080
+          backend:
+            serviceName: mud
+            servicePort: 8080
 # spec:
 #   rules:
 #   - http:
