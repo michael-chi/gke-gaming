@@ -13,7 +13,7 @@ spec:
     - host: game.michaelchi.net
       http:
         paths:
-        - path: /
+        - path: /ws
           backend:
             serviceName: mud
             servicePort: 8080
@@ -21,6 +21,10 @@ spec:
           backend:
             serviceName: mud
             servicePort: 8080
+        - path: /
+        backend:
+          serviceName: mud
+          servicePort: 8080
 # spec:
 #   rules:
 #   - http:
