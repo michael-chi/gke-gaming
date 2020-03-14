@@ -1,11 +1,11 @@
 const WebSocket = require('ws');
-const server = new WebSocket.Server({ port: 8080 });
+const server = new WebSocket.Server({ port: 8080, path:'/ws'});
 const User = require('./models/user.js');
 const Room = require('./models/room.js');
 const Firebolt = require('./skills/firebolt.js');
 const Smash = require('./skills/smash.js');
 
-const server_hc = new WebSocket.Server({ port: 80 , path:'/health'});
+//const server_hc = new WebSocket.Server({ port: 80 , path:'/health'});
 
 console.log('starting websocket server...');
 

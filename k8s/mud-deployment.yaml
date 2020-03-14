@@ -3,6 +3,12 @@ kind: Deployment
 metadata:
     name: mud
 spec:
+    replicas: 2
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 1
+        #   maxUnavailable: 25%
     selector:
         matchLabels:
             app: mud
@@ -14,26 +20,19 @@ spec:
         spec:
             containers:
             -   name: mud
-                image: gcr.io/kalschi-agones/mud:v4
+                image: gcr.io/kalschi-agones/mud:v6
                 imagePullPolicy: Always
                 ports:
-                    -   name: http
-                        containerPort: 80
-                ports:
-                    -   name: http
+                    -   name: ws
                         containerPort: 8080
                 livenessProbe:
                     tcpSocket:
                         port: 8080
-                    initialDelaySeconds: 180
-                # readinessProbe:
-                #     httpGet:
-                #         port: 8080
-                #         path: /ws
+                    initialDelaySeconds: 30
                 readinessProbe:
                     tcpSocket:
                         port: 8080
-                    initialDelaySeconds: 10
+                    initialDelaySeconds: 30
                 # env:
                 #     -   name: PROJECT_ID
                 #         value: kalschi-agones

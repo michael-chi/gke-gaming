@@ -4,15 +4,14 @@ metadata:
   name: mud
   annotations:
     cloud.google.com/neg: '{"ingress": true}'
+    beta.cloud.google.com/backend-config: '{"ports": {"8080":"mud-backendconfig"}}'
 spec:
+  sessionAffinity: ClientIP 
   selector:
     app: mud
   ports:
   - protocol: TCP
     port: 8080
+    name: mud
     targetPort: 8080
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-  type: NodePort
+  type: ClusterIP

@@ -1,0 +1,8 @@
+apiVersion: cloud.google.com/v1beta1
+kind: BackendConfig
+metadata:
+  name: mud-backendconfig
+spec:
+  timeoutSec: 180000 # For longer-lived connections to the backend service from the load balancer, configure a timeout setting longer than the 30-second default.
+  connectionDraining:
+    drainingTimeoutSec: 180000 #Time, in seconds, to wait for connections to drain. Default is 0 seconds.

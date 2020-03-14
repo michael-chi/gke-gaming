@@ -8,10 +8,21 @@ var standard_input = process.stdin;
 standard_input.setEncoding('utf-8');
 
 //34.102.250.216:80
-socket = new WebSocket("ws://34.102.250.216:80/ws");
+//var host = "10.4.13.12";
+//var host = "127.0.0.1:8080";
+var host = "game.michaelchi.net:80";
+
+socket = new WebSocket("ws://" + host + "/");
 socket.onmessage = function (event) {
     console.log(event.data);
 };
+socket.onerror = function(err){
+    console.log('err');
+    console.log(err);
+    console.log(err.data);
+    console.log(err.message);
+    socket.close();
+}
 socket.onopen = function (event) {
     console.log(event.data);
     if (socket.readyState == WebSocket.OPEN) {
