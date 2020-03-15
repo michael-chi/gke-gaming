@@ -24,3 +24,5 @@ kubectl apply -f ../k8s/mud-ingress.yaml
 ```
 
 Once deployed, wait for serveral minutes untill everything setup, then use a websocket client to verify functionality
+
+### [Agones Integration](./agones-integration)
