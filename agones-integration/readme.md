@@ -7,6 +7,8 @@ I will first deploy to Agones without changing anything in the codes to veryfy d
 
 ### Table of Content
 
+[Game Overview](./game-arch.md)
+
 [Setup Agones](./setup-agones.md)
 
 [Create Game Server](./setup-game-servers.md)
