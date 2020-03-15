@@ -1,5 +1,6 @@
 Overview
 ========
+
 In Google Cloud platform, currently there are two ways to setup Agones server on GKE
 
 -   Deploy Agones cluster
@@ -8,6 +9,12 @@ In Google Cloud platform, currently there are two ways to setup Agones server on
 
 -   [Install required components](##install-agones-using-yaml)
 
+
+### Agones Architecture
+
+<img src="../docs/agones.jpeg"/>
+
+-----
 -----
 ### Click to Deploy
 
