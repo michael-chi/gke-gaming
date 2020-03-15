@@ -1,0 +1,13 @@
+apiVersion: "autoscaling.agones.dev/v1"
+kind: FleetAutoscaler
+metadata:
+  name: mud-autoscaler
+spec:
+  fleetName: mud
+  policy:
+    type: Buffer
+    buffer:
+      bufferSize: 1
+      minReplicas: 1
+      maxReplicas: 2
+      #maxReplicas: 1  # for demo and testing purpose, limit max replica to 1

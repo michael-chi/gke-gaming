@@ -1,0 +1,33 @@
+
+apiVersion: "agones.dev/v1"
+kind: Fleet
+metadata:
+  name: mud
+spec:
+  replicas: 1
+  template:
+    spec:
+      ports:
+      - name: default
+        portPolicy: Static
+        containerPort: 9999
+        hostPort: 9999
+        protocol: TCP
+      health:
+          # disable health check as we are not yet integrated with Agones SDK yet
+          disable: true
+          initialDelaySeconds: 10
+          periodSeconds: 60
+      template:
+        spec:
+          containers:
+          - name: mud
+            image: gcr.io/kalschi-agones/mud:v10
+            imagePullPolicy: Always
+            # resources:
+            #   requests:
+            #     memory: "64Mi"
+            #     cpu: "20m"
+            #   limits:
+            #     memory: "64Mi"
+            #     cpu: "20m"
