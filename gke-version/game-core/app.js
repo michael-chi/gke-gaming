@@ -56,9 +56,12 @@ websocketServer.on('connection', async (ws, req) => {
     ws.on('message', async function message(message) {
         log(`received message ${message}`);
 
-        //  Should use a commnad + factory here, 
-        //  but I am not writting a real game, 
-        //  so this is good enough for me to do a demo...
+        //  Should implement a command/message pipeline to handler different level commands
+        //  websocket connection level (login/quit) ->>
+        //      game level ->>
+        //          room level ->>
+        //              player level.
+        //  But not now...
         if (message.startsWith('login ')) {
             var name = message.split(' ')[1];         
             var user = await Spanner.EnsurePlayer(name);
