@@ -1,6 +1,7 @@
 const { Spanner } = require('@google-cloud/spanner');
 var User = require('../models/user');
 var GameEventHandler = require('./gameEventHandler');
+var GameConfiguration = require('../models/config');
 
 var bootstrapper = new GameEventHandler();
 
@@ -25,7 +26,11 @@ function default_write_formatter(row) {
 
 }
 function newSpannerClient() {
-    return new ProfileStorage('kalschi-agones', 'game-spanner', 'mud-sample',
+    // return new ProfileStorage('kalschi-agones', 'game-spanner', 'mud-sample',
+    //     null, null);
+    const spanner = GameConfiguration.Spanner();
+    console.log(JSON.stringify(spanner));
+    return new ProfileStorage(spanner.PROJECT_ID, spanner.INSTANCE_ID, spanner.DATABASE_ID,
         null, null);
 }
 

@@ -47,7 +47,7 @@ class User {
         this.emit('login',this);
     }
     quit(){
-        this.emut('quit',this);
+        this.emit('quit',this);
     }
     attack(target){
         if(this._self._state != STATE_NORMAL){
