@@ -37,6 +37,19 @@ CREATE TABLE players (
 CREATE INDEX PlayerProfile ON players(name, playerClass, playerLv)
 ```
 
+Now we have Spanner and tables ready, we can than integrate our game with [Spanner](./game-core/utils/spanner.js). A high level overview of how event results are logged to Spanner is shown below.
+
+```mermaid
+sequenceDiagram
+
+Player ->> app.js: command: login
+app.js ->> spanner.js: EnsurePlayer()
+Player ->> app.js: command: attack
+app.js ->> CommandHandler: do: attack(target)
+CommandHandler ->> spanner.js: FireEvent()
+spanner.js ->> Cloud Spanner: log event
+```
+
 ### Update Dockerfile and Yaml files
 
 To use Spanner node.js SDK we need to make sure our environment runs grpc, I've updated my [Dockerfile](./game-core/Dockerfile) to reflect new requirements.

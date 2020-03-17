@@ -26,8 +26,6 @@ function default_write_formatter(row) {
 
 }
 function newSpannerClient() {
-    // return new ProfileStorage('kalschi-agones', 'game-spanner', 'mud-sample',
-    //     null, null);
     const spanner = GameConfiguration.Spanner();
     console.log(JSON.stringify(spanner));
     return new ProfileStorage(spanner.PROJECT_ID, spanner.INSTANCE_ID, spanner.DATABASE_ID,
