@@ -11,7 +11,7 @@ spec:
     app: mud
   ports:
   - protocol: TCP
-    port: 8080
+    port: 9999
     name: mud
-    targetPort: 8080
+    targetPort: 9999
   type: ClusterIP

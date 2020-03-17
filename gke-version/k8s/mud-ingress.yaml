@@ -9,7 +9,7 @@ metadata:
 spec:
   backend:
     serviceName: mud
-    servicePort: 8080
+    servicePort: 9999
   rules:
     - host:
       http:
@@ -17,31 +17,12 @@ spec:
         - path: /ws
           backend:
             serviceName: mud
-            servicePort: 8080
+            servicePort: 9999
         - path: /*
           backend:
             serviceName: mud
-            servicePort: 8080
+            servicePort: 9999
         - path: /
           backend:
             serviceName: mud
-            servicePort: 8080
-# spec:
-#   rules:
-#   - http:
-#       paths:
-#       - path: /
-#         backend:
-#           serviceName: mud
-#           servicePort: 8080
-#       - path: /*
-#         backend:
-#           serviceName: mud
-#           servicePort: 8080
-  # rules:
-  # - http:
-  #     paths:
-  #     - path: /ws
-  #       backend:
-  #         serviceName: mud
-  #         servicePort: 8080
+            servicePort: 9999
