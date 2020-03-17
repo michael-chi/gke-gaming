@@ -25,11 +25,11 @@ function default_write_formatter(row) {
 
 }
 function newSpannerClient() {
-    return new CloudSpanner('kalschi-agones', 'game-spanner', 'mud-sample',
+    return new ProfileStorage('kalschi-agones', 'game-spanner', 'mud-sample',
         null, null);
 }
 
-class CloudSpanner {
+class ProfileStorage {
     
     constructor(projectId, instanceId, databaseId, read_formatter, write_formatter) {
         this.read_formatter = read_formatter ? read_formatter : default_read_formatter;
@@ -159,4 +159,4 @@ class CloudSpanner {
     }
 }
 
-module.exports = CloudSpanner;
+module.exports = ProfileStorage;

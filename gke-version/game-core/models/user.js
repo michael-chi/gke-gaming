@@ -43,6 +43,12 @@ class User {
     skills(value){
         this._skills = value;
     }
+    login(){
+        this.emit('login',this);
+    }
+    quit(){
+        this.emut('quit',this);
+    }
     attack(target){
         if(this._self._state != STATE_NORMAL){
             return new InGameMessage(this._self.name, 'you are dying, you can\'t do anything now...');

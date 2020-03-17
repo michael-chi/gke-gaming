@@ -60,8 +60,8 @@ websocketServer.on('connection', async (ws, req) => {
             var name = message.split(' ')[1];
             
             var user = await Spanner.EnsurePlayer(name);
-
             log(`created user object ${user.name}`);
+            user.login();
             CLIENTS.set(user.name, ws);
             CLIENT_SOCKETS.set(clientName, user.name);
             room.join(user);
@@ -84,6 +84,7 @@ websocketServer.on('connection', async (ws, req) => {
             broadcast(CLIENT_SOCKETS.get(clientName), msg);
         } else if (message == 'quit') {
             broadcast(CLIENT_SOCKETS.get(clientName), 'bye');
+            user.quit();
             CLIENT_SOCKETS.get(clientName).close();
         } else if (message == 'look') {
             broadcast(CLIENT_SOCKETS.get(clientName), 'You are in a game world.');
