@@ -1,52 +1,50 @@
-const WebSocket = require('ws');
-const port = 8080;
-const server = new WebSocket.Server({ port: port, path:'/ws'});
-const User = require('./models/user.js');
-const Room = require('./models/room.js');
-const Firebolt = require('./skills/firebolt.js');
-const Smash = require('./skills/smash.js');
+"use strict";
+require('dotenv').config();
 
-//const server_hc = new WebSocket.Server({ port: 80 , path:'/health'});
-var express = require('express');
-var app = express();
+const Spanner = require('./utils/spanner');
+const Room = require('./models/room');
+const GameEventHandler = require('./utils/gameEventHandler');
+const CommandManager = require('./skills/factory');
 
-app.get('/', function (req, res) {
-  res.send('Hello World!');
-});
-
-console.log('starting websocket server...');
-
-server.on('open', function open() {
-    console.log('connected');
-});
-
-server.on('close', function close() {
-    console.log('closed');
-});
+const serverPort = 9999,
+    http = require("http"),
+    express = require("express"),
+    app = express(),
+    server = http.createServer(app),
+    WebSocket = require("ws"),
+    websocketServer = new WebSocket.Server({ server });
 
 var room = null;
+const eventHandler = new GameEventHandler();
+
+
 const CLIENTS = new Map();
 const CLIENT_SOCKETS = new Map();
 
-function log(msg){
+function log(msg) {
     console.log(`[GameServer]${msg}`);
 }
 function broadcast(name, message) {
     log(`broadcasting to ${name}:${message}`);
     if (name == '*') {
-        server.clients.forEach(ws => {
+        websocketServer.clients.forEach(ws => {
             ws.send(message);
         });
     } else {
         room.players.forEach(ppl => {
-            if(ppl.name == name){
+            if (ppl.name == name) {
                 CLIENTS.get(ppl.name).send(message);
             }
         })
     }
 }
+app.get('/', function(req,res){
+  res.send('ok');  
+});
 
-server.on('connection', function connection(ws, req) {
+//when a websocket connection is established
+websocketServer.on('connection', async (ws, req) => {
+    //send feedback to the incoming connection
     const ip = req.connection.remoteAddress;
     const port = req.connection.remotePort;
     const clientName = ip + ':' + port;
@@ -55,48 +53,49 @@ server.on('connection', function connection(ws, req) {
         room = new Room(broadcast);
     }
     ws.send(clientName + ' type login [name] to login to the game');
-    ws.on('message', function message(message) {
+    ws.on('message', async function message(message) {
         log(`received message ${message}`);
 
-        //  Should use a commnad factory here, but I am not writting a real game, so this is good enough for me to do a demo...
+        //  Should implement a command/message pipeline to handler different level commands
+        //  websocket connection level (login/quit) ->>
+        //      game level ->>
+        //          room level ->>
+        //              player level.
+        //  But not now...
         if (message.startsWith('login ')) {
-            var name = message.split(' ')[1];
-            var user = new User(name, 'Warrior', 120, 120, 1, [new Firebolt('firebolt'), new Smash('smash')]);
-
+            var name = message.split(' ')[1];         
+            var user = await Spanner.EnsurePlayer(name);
             log(`created user object ${user.name}`);
+            user.login();
             CLIENTS.set(user.name, ws);
             CLIENT_SOCKETS.set(clientName, user.name);
             room.join(user);
-        }else if (message.startsWith('attack ')) {
-            var targetName = message.split(' ')[1];
-            var target = room.players.get(targetName);
-            if(!target){
-                broadcast(CLIENT_SOCKETS.get(clientName), 'There no one called ' + targetName);
-            }else{
-                var me = room.players.get(CLIENT_SOCKETS.get(clientName));
-                if(me){
-                    var msg = me.attack(target);
-                    broadcast(msg.notifyUser, msg.message);
-                }else{
-                    broadcast(CLIENT_SOCKETS.get(clientName), 'W#@$F...something went wrong!');
-                }
-            }
-        }else if(message == 'stat'){
-            var msg = room.players.get(CLIENT_SOCKETS.get(clientName)).toString();
-            broadcast(CLIENT_SOCKETS.get(clientName), msg);
-        }else if (message == 'quit') {
+        } else if (message == 'quit') {
+            var me = room.players.get(CLIENT_SOCKETS.get(clientName));
             broadcast(CLIENT_SOCKETS.get(clientName), 'bye');
-        }else if (message == 'look') {
-            broadcast(CLIENT_SOCKETS.get(clientName), 'You are in a game world.');
-        }else{
-            ws.send('what do you want to do ?');
+            me.quit();
+            CLIENT_SOCKETS.delete(clientName);
+            CLIENTS.delete(me.name);
+            ws.close();
         }
-        
+        else{
+            var factory = new CommandManager(room.players.get(CLIENT_SOCKETS.get(clientName)),
+                                                function(name){
+                                                    return room.players.get(name);
+                                                },
+                                                room);
+            var msg = factory.do(message);
+            if(msg){
+                broadcast(msg.notifyUser, msg.message);
+            }
+            else{
+                ws.send('what do you want to do ?');
+            }
+        }
     });
 });
 
-
-app.listen(port, function () {
-    console.log('Example app listening on port 80!');
-  });
-  
+//start the web server
+server.listen(serverPort, () => {
+    console.log(`Websocket server started on port ` + serverPort);
+});

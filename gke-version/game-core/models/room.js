@@ -1,10 +1,15 @@
 const User = require('./user.js');
+const Look = require('../skills/look');
 
 module.exports = class Room
 {
     constructor(broadcast){
         this._players = new Map();
         this._broadcast = broadcast;
+        this._systemCommands = new Map();
+    }
+    who(){
+        return Array.from(this._players.keys());
     }
     join(user){
         this._players.set(user.name, user);
