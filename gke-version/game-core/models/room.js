@@ -6,6 +6,9 @@ module.exports = class Room
         this._players = new Map();
         this._broadcast = broadcast;
     }
+    who(){
+        return Array.from(this._players.keys());
+    }
     join(user){
         this._players.set(user.name, user);
         this._broadcast('*',`Yo! ${user.name} just joined this match.`);

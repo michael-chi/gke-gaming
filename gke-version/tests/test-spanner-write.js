@@ -29,14 +29,14 @@ const go_read = async (name) => {
     const spanner = new GCPSpanner('kalschi-agones', 'game-spanner', 'mud-sample',
         null, null);
     var result = await spanner.readPlayer(name);  
-
+    console.log('retriving done');
     return result;
 }
 const go_update = async (user) => {
     var GCPSpanner = require('../game-core/utils/spanner.js');
     const spanner = new GCPSpanner('kalschi-agones', 'game-spanner', 'mud-sample',
         null, null);
-    console.log(`===> writing...`);
+    console.log(`===> go_update...`);
     var result = await spanner.updatePlayer(
         user
     );

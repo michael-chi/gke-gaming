@@ -1,10 +1,17 @@
 const InGameMessage = require('../utils/inGameMessage.js');
 const { uuid } = require('uuidv4');
+var Emitter = require('events').EventEmitter;
+const GameEventHandler = require('../utils/gameEventHandler');
+
+var events = new Emitter();
+var util = require('util');
+
 
 const STATE_NORMAL = 'normal';
 const STATE_DYING = 'dying';
 
-module.exports = class User {
+
+class User {
     constructor(name, playerClass, hp, mp, lv, skills, id) {
         this._id = id ? id : uuid();
         this._name = name;
@@ -14,18 +21,27 @@ module.exports = class User {
         this._lv = lv;
         this._state = STATE_NORMAL;
         this._self = this;
-        this._skills = skills;
+        this._skills = null;//[new Firebolt(), new Smash()];
+
+        this.emit('new', this);
     }
     dying(){
         this._state = STATE_DYING;
         this._hp = 0;
+
+        this.emit('dying', this);
     }
     resurrection(){
         this._state = STATE_NORMAL;
         this._ = 200;
+
+        this.emit('resurrection', this);
     }
     skills(){
         return this._skills;
+    }
+    skills(value){
+        this._skills = value;
     }
     attack(target){
         if(this._self._state != STATE_NORMAL){
@@ -33,7 +49,10 @@ module.exports = class User {
         }
         for(var i =0; i < this._skills.length; i++){
             if(Math.random() >= 0.2){
+                this.emit('attack', {actor:this, skill:this._skills[i].name});
                 return this._skills[i].attack(this._self, target);
+            }else{
+                this.emit('missed', {actor:this});
             }
         }
         return new InGameMessage('*', `${this._self.name} stands still...`);
@@ -63,21 +82,27 @@ module.exports = class User {
         return this._lv;
     }
     set playerLv(value){
+        this.emit('playerLv', {actor:this,value:value});
         this._lv = value;
     }
     get hp (){
         return this._hp;
     }
     set hp(value){
+        console.log('hp changed');
+        this.emit('hp', {actor:this,value:value});
         this._hp = value;
     }
     get mp (){
         return this._mp;
     }
     set mp(value){
+        this.emit('mp', {actor:this,value:value});
         this._mp = value;
     }
     toString(){
         return `${this.name}\r\n=========\r\nlevel ${this._lv} ${this.playerClass}\r\nHP:${this.hp}\tMP:${this.mp}`;
     }
-}
+};
+util.inherits(User, Emitter);
+module.exports = User;

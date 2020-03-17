@@ -9,7 +9,7 @@ standard_input.setEncoding('utf-8');
 
 //34.102.250.216:80
 //var host = "10.4.13.12";
-var host = "127.0.0.1:3000";
+var host = "127.0.0.1:9999";
 //var host = "game.michaelchi.net";
 
 socket = new WebSocket("ws://" + host + "/ws");
