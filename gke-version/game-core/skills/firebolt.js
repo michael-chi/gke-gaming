@@ -1,4 +1,4 @@
-const Skill = require('./skill.js');
+//const Skill = require('./skill.js');
 const User = require('../models/user.js');
 const InGameMessage = require('../utils/inGameMessage.js');
 function getRandomInt(max) {
@@ -14,7 +14,8 @@ module.exports = class FireBolt {
     set name(value){
         this._name = value;
     }
-
+    static IsSystem(){return false;}
+    
     
     attack (me, target){
         var damage = getRandomInt(12);

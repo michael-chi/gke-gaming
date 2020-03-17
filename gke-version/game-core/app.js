@@ -4,6 +4,7 @@ require('dotenv').config();
 const Spanner = require('./utils/spanner');
 const Room = require('./models/room');
 const GameEventHandler = require('./utils/gameEventHandler');
+const CommandManager = require('./skills/factory');
 
 const serverPort = 9999,
     http = require("http"),
@@ -66,38 +67,28 @@ websocketServer.on('connection', async (ws, req) => {
             CLIENTS.set(user.name, ws);
             CLIENT_SOCKETS.set(clientName, user.name);
             room.join(user);
-        } else if (message.startsWith('attack ')) {
-            var targetName = message.split(' ')[1];
-            var target = room.players.get(targetName);
-            if (!target) {
-                broadcast(CLIENT_SOCKETS.get(clientName), 'There no one called ' + targetName);
-            } else {
-                var me = room.players.get(CLIENT_SOCKETS.get(clientName));
-                if (me) {
-                    var msg = me.attack(target);
-                    broadcast(msg.notifyUser, msg.message);
-                } else {
-                    broadcast(CLIENT_SOCKETS.get(clientName), 'W#@$F...something went wrong!');
-                }
-            }
-        } else if (message == 'stat') {
-            var msg = room.players.get(CLIENT_SOCKETS.get(clientName)).toString();
-            broadcast(CLIENT_SOCKETS.get(clientName), msg);
         } else if (message == 'quit') {
             var me = room.players.get(CLIENT_SOCKETS.get(clientName));
-
             broadcast(CLIENT_SOCKETS.get(clientName), 'bye');
             me.quit();
             CLIENT_SOCKETS.delete(clientName);
             CLIENTS.delete(me.name);
             ws.close();
-        } else if (message == 'look') {
-            broadcast(CLIENT_SOCKETS.get(clientName), 'You are in a game world.');
-            broadcast(CLIENT_SOCKETS.get(clientName),  `you see ${room.who()} standing in this room` );
-        } else {
-            ws.send('what do you want to do ?');
         }
-
+        else{
+            var factory = new CommandManager(room.players.get(CLIENT_SOCKETS.get(clientName)),
+                                                function(name){
+                                                    return room.players.get(name);
+                                                },
+                                                room);
+            var msg = factory.do(message);
+            if(msg){
+                broadcast(msg.notifyUser, msg.message);
+            }
+            else{
+                ws.send('what do you want to do ?');
+            }
+        }
     });
 });
 
