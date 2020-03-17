@@ -1,8 +1,8 @@
 const { Spanner } = require('@google-cloud/spanner');
-const User = require('../models/user');
-const GameEventHandler = require('./gameEventHandler.js');
-console.log(GameEventHandler);
-const bootstrapper = new GameEventHandler();
+var User = require('../models/user');
+var GameEventHandler = require('./gameEventHandler');
+
+var bootstrapper = new GameEventHandler();
 
 Array.prototype.toString = function () {
     const temp = [];
@@ -15,21 +15,22 @@ function default_read_formatter(row) {
     const result = row.toJSON({ wrapNumbers: true });
     console.log(`default_read_formatter\r\n==============\r\n${JSON.stringify(result)}\r\n==============`);
     console.log(User);
-    return new User(result['name'],result['playerClass'], parseInt(result['hp'].value),
-                    parseInt(result['mp'].value),
-                    parseInt(result['playerLv'].value),
-                    null,
-                    result['id']);
+    return new User(result['name'], result['playerClass'], parseInt(result['hp'].value),
+        parseInt(result['mp'].value),
+        parseInt(result['playerLv'].value),
+        null,
+        result['id']);
 }
 function default_write_formatter(row) {
 
 }
-function newSpannerClient(){
+function newSpannerClient() {
     return new CloudSpanner('kalschi-agones', 'game-spanner', 'mud-sample',
-                    null, null);
+        null, null);
 }
 
 class CloudSpanner {
+    
     constructor(projectId, instanceId, databaseId, read_formatter, write_formatter) {
         this.read_formatter = read_formatter ? read_formatter : default_read_formatter;
         this.write_formatter = write_formatter ? write_formatter : default_write_formatter;
@@ -40,23 +41,26 @@ class CloudSpanner {
         this.instance = this.spanner.instance(instanceId);
         this.database = this.instance.database(databaseId);
     }
-    static CreateSpannerClient (){
+    static CreateSpannerClient() {
         return newSpannerClient();
     }
-    static async EnsurePlayer(name){
+    static async EnsurePlayer(name) {
         const spanner = newSpannerClient();
         var existing = await spanner.readPlayer(name);
         console.log(existing);
         console.log(`player alread exists:${existing != null && existing != 'undefined'}`);
-    
-        if(!existing){
+
+        if (!existing) {
             console.log(`creating new player in Spanner...`);
             var user = new User(name, 'Warrior', 120, 120, 1, null);
             existing = await spanner.newPlayer(user);
             console.log(`creating new player in Spanner...done`);
             console.log(`============\r\n${existing.toString()}`);
         }
-        bootstrapper.setup(existing);
+        bootstrapper.configure(existing, async function(data){
+            var spanner = newSpannerClient();
+            await spanner.updatePlayer(existing);
+        });
         return existing;
     }
     async readPlayer(name) {
