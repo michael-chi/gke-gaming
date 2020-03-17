@@ -1,9 +1,8 @@
 "use strict";
-const Spanner = require('./utils/spanner');
-const Room = require('./models/room');
-
 require('dotenv').config();
 
+const Spanner = require('./utils/spanner');
+const Room = require('./models/room');
 const GameEventHandler = require('./utils/gameEventHandler');
 
 const serverPort = 9999,
@@ -42,7 +41,6 @@ app.get('/', function(req,res){
   res.send('ok');  
 });
 
-
 //when a websocket connection is established
 websocketServer.on('connection', async (ws, req) => {
     //send feedback to the incoming connection
@@ -57,7 +55,9 @@ websocketServer.on('connection', async (ws, req) => {
     ws.on('message', async function message(message) {
         log(`received message ${message}`);
 
-        //  Should use a commnad factory here, but I am not writting a real game, so this is good enough for me to do a demo...
+        //  Should use a commnad + factory here, 
+        //  but I am not writting a real game, 
+        //  so this is good enough for me to do a demo...
         if (message.startsWith('login ')) {
             var name = message.split(' ')[1];         
             var user = await Spanner.EnsurePlayer(name);
@@ -89,7 +89,8 @@ websocketServer.on('connection', async (ws, req) => {
             broadcast(CLIENT_SOCKETS.get(clientName), 'bye');
             me.quit();
             CLIENT_SOCKETS.delete(clientName);
-            ws.close();//CLIENT_SOCKETS.get(clientName).close();
+            CLIENTS.delete(me.name);
+            ws.close();
         } else if (message == 'look') {
             broadcast(CLIENT_SOCKETS.get(clientName), 'You are in a game world.');
             broadcast(CLIENT_SOCKETS.get(clientName),  `you see ${room.who()} standing in this room` );
