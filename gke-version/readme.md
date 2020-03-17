@@ -44,9 +44,11 @@ sequenceDiagram
 
 Player ->> app.js: command: login
 app.js ->> spanner.js: EnsurePlayer()
+spanner.js ->> Cloud Spanner: Insert or Update player
 Player ->> app.js: command: attack
 app.js ->> CommandHandler: do: attack(target)
-CommandHandler ->> spanner.js: FireEvent()
+CommandHandler ->> app.js: FireEvent()
+app.js ->> spanner.js: UpdatePlayer()
 spanner.js ->> Cloud Spanner: log event
 ```
 
