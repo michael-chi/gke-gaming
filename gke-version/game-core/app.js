@@ -60,7 +60,7 @@ websocketServer.on('connection', async (ws, req) => {
             var name = message.split(' ')[1];
             
             var user = await Spanner.EnsurePlayer(name);
-
+            
             log(`created user object ${user.name}`);
             CLIENTS.set(user.name, ws);
             CLIENT_SOCKETS.set(clientName, user.name);

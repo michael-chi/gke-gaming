@@ -1,7 +1,8 @@
 "use strict";
 const User = require('./models/user.js');
 const Room = require('./models/room.js');
-
+const Firebolt = require('./skills/firebolt.js');
+const Smash = require('./skills/smash.js');
 const AgonesSDK = require('@google-cloud/agones-sdk');
 const agonesSDK = new AgonesSDK();
 var bodyParser = require('body-parser');
