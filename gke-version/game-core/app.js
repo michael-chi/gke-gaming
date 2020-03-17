@@ -1,52 +1,44 @@
-const WebSocket = require('ws');
-const port = 8080;
-const server = new WebSocket.Server({ port: port, path:'/ws'});
+"use strict";
 const User = require('./models/user.js');
 const Room = require('./models/room.js');
 const Firebolt = require('./skills/firebolt.js');
 const Smash = require('./skills/smash.js');
 
-//const server_hc = new WebSocket.Server({ port: 80 , path:'/health'});
-var express = require('express');
-var app = express();
-
-app.get('/', function (req, res) {
-  res.send('Hello World!');
-});
-
-console.log('starting websocket server...');
-
-server.on('open', function open() {
-    console.log('connected');
-});
-
-server.on('close', function close() {
-    console.log('closed');
-});
+const serverPort = 8080,
+    http = require("http"),
+    express = require("express"),
+    app = express(),
+    server = http.createServer(app),
+    WebSocket = require("ws"),
+    websocketServer = new WebSocket.Server({ server });
 
 var room = null;
 const CLIENTS = new Map();
 const CLIENT_SOCKETS = new Map();
 
-function log(msg){
+function log(msg) {
     console.log(`[GameServer]${msg}`);
 }
 function broadcast(name, message) {
     log(`broadcasting to ${name}:${message}`);
     if (name == '*') {
-        server.clients.forEach(ws => {
+        websocketServer.clients.forEach(ws => {
             ws.send(message);
         });
     } else {
         room.players.forEach(ppl => {
-            if(ppl.name == name){
+            if (ppl.name == name) {
                 CLIENTS.get(ppl.name).send(message);
             }
         })
     }
 }
-
-server.on('connection', function connection(ws, req) {
+app.get('/', function(req,res){
+  res.send('ok');  
+});
+//when a websocket connection is established
+websocketServer.on('connection', (ws, req) => {
+    //send feedback to the incoming connection
     const ip = req.connection.remoteAddress;
     const port = req.connection.remotePort;
     const clientName = ip + ':' + port;
@@ -67,36 +59,35 @@ server.on('connection', function connection(ws, req) {
             CLIENTS.set(user.name, ws);
             CLIENT_SOCKETS.set(clientName, user.name);
             room.join(user);
-        }else if (message.startsWith('attack ')) {
+        } else if (message.startsWith('attack ')) {
             var targetName = message.split(' ')[1];
             var target = room.players.get(targetName);
-            if(!target){
+            if (!target) {
                 broadcast(CLIENT_SOCKETS.get(clientName), 'There no one called ' + targetName);
-            }else{
+            } else {
                 var me = room.players.get(CLIENT_SOCKETS.get(clientName));
-                if(me){
+                if (me) {
                     var msg = me.attack(target);
                     broadcast(msg.notifyUser, msg.message);
-                }else{
+                } else {
                     broadcast(CLIENT_SOCKETS.get(clientName), 'W#@$F...something went wrong!');
                 }
             }
-        }else if(message == 'stat'){
+        } else if (message == 'stat') {
             var msg = room.players.get(CLIENT_SOCKETS.get(clientName)).toString();
             broadcast(CLIENT_SOCKETS.get(clientName), msg);
-        }else if (message == 'quit') {
+        } else if (message == 'quit') {
             broadcast(CLIENT_SOCKETS.get(clientName), 'bye');
-        }else if (message == 'look') {
+        } else if (message == 'look') {
             broadcast(CLIENT_SOCKETS.get(clientName), 'You are in a game world.');
-        }else{
+        } else {
             ws.send('what do you want to do ?');
         }
-        
+
     });
 });
 
-
-app.listen(port, function () {
-    console.log('Example app listening on port 80!');
-  });
-  
+//start the web server
+server.listen(serverPort, () => {
+    console.log(`Websocket server started on port ` + serverPort);
+});

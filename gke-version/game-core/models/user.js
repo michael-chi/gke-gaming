@@ -1,9 +1,12 @@
 const InGameMessage = require('../utils/inGameMessage.js');
+const { uuid } = require('uuidv4');
+
 const STATE_NORMAL = 'normal';
 const STATE_DYING = 'dying';
 
 module.exports = class User {
-    constructor(name, playerClass, hp, mp, lv, skills) {
+    constructor(name, playerClass, hp, mp, lv, skills, id) {
+        this._id = id ? id : uuid();
         this._name = name;
         this._class = playerClass;
         this._hp = hp;
@@ -35,6 +38,9 @@ module.exports = class User {
         }
         return new InGameMessage('*', `${this._self.name} stands still...`);
     }
+    get id(){
+        return this._id;
+    }
     get name (){
         if (this._name) {
             return this._name;
@@ -54,10 +60,10 @@ module.exports = class User {
         this._class = value;
     }
     get playerLv(){
-        return this._level;
+        return this._lv;
     }
     set playerLv(value){
-        this._level = value;
+        this._lv = value;
     }
     get hp (){
         return this._hp;
