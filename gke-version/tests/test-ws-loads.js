@@ -7,12 +7,21 @@ const readline = require('readline').createInterface({
 var standard_input = process.stdin;
 standard_input.setEncoding('utf-8');
 
-//var host = "34.102.250.216";
-var host = "127.0.0.1:9999";
+var host = "34.102.250.216";
+//var host = "127.0.0.1:9999";
 //var host = "game.michaelchi.net";
-
+var current = '';
 socket = new WebSocket("ws://" + host + "/ws");
 socket.onmessage = function (event) {
+    if(current == ''){
+
+    }else if(current == 'list'){
+        var players = JSON.parse(event.data);
+        current = 'attack';
+        
+    }else if(current == 'attack'){
+
+    }
     console.log(event.data);
 };
 socket.onerror = function(err){
@@ -27,6 +36,9 @@ socket.onopen = function (event) {
     if (socket.readyState == WebSocket.OPEN) {
         readline.setPrompt('Game>>');
         readline.prompt();
+        current = 'list';
+        socket.send('list');
+
         readline.on('line', function(line){
             socket.send(line);
             if(line == 'quit'){
