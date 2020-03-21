@@ -3,7 +3,6 @@ var User = require('../models/user');
 var GameEventHandler = require('./gameEventHandler');
 var GameConfiguration = require('../models/config');
 
-var bootstrapper = new GameEventHandler();
 
 Array.prototype.toString = function () {
     const temp = [];
@@ -61,11 +60,14 @@ class ProfileStorage {
             console.log(`creating new player in Spanner...done`);
             console.log(`============\r\n${existing.toString()}`);
         }
-        bootstrapper.configure(existing, async function (data) {
-            var spanner = newSpannerClient();
-            //await spanner.updatePlayer(existing);
-            await spanner.writePlayerWithMutations(existing);
-        });
+        
+        // var bootstrapper = new GameEventHandler();
+
+        // bootstrapper.configure(existing, async function (data) {
+        //     var spanner = newSpannerClient();
+        //     //await spanner.updatePlayer(existing);
+        //     await spanner.writePlayerWithMutations(existing);
+        // });
         return existing;
     }
     async readPlayer(name) {

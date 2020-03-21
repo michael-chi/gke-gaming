@@ -17,7 +17,7 @@ module.exports = class Room
     }
     leave(user){
         this._broadcast('*',`Yo! ${user.name} just leave this match.`);
-        this._players.delete(user.name);
+        console.log(`delete ${user.name} from collection:${this._players.delete(user.name)}`);
     }
     get players(){return this._players;}
  

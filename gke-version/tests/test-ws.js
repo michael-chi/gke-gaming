@@ -13,10 +13,11 @@ var host = "127.0.0.1:9999";
 
 socket = new WebSocket("ws://" + host + "/ws");
 socket.onmessage = function (event) {
-    console.log(event.data);
+    if(event)
+        console.log(event.data);
 };
 socket.onerror = function(err){
-    console.log('err');
+    console.log('err>>>');
     console.log(err);
     console.log(err.data);
     console.log(err.message);
