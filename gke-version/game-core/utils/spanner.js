@@ -33,7 +33,7 @@ function newSpannerClient() {
 }
 
 class ProfileStorage {
-    
+
     constructor(projectId, instanceId, databaseId, read_formatter, write_formatter) {
         this.read_formatter = read_formatter ? read_formatter : default_read_formatter;
         this.write_formatter = write_formatter ? write_formatter : default_write_formatter;
@@ -56,13 +56,15 @@ class ProfileStorage {
         if (!existing) {
             console.log(`creating new player in Spanner...`);
             var user = new User(name, 'Warrior', 120, 120, 1, null);
-            existing = await spanner.newPlayer(user);
+            existing = await spanner.writePlayerWithMutations(user);
+            //existing = await spanner.newPlayer(user);
             console.log(`creating new player in Spanner...done`);
             console.log(`============\r\n${existing.toString()}`);
         }
-        bootstrapper.configure(existing, async function(data){
+        bootstrapper.configure(existing, async function (data) {
             var spanner = newSpannerClient();
-            await spanner.updatePlayer(existing);
+            //await spanner.updatePlayer(existing);
+            await spanner.writePlayerWithMutations(existing);
         });
         return existing;
     }
@@ -126,7 +128,29 @@ class ProfileStorage {
             }
         });
     }
-
+    async writePlayerWithMutations(players) {
+        var playerTable = this.database.table('players');
+        var target = [];
+        if (players instanceof Array) {
+            target = players;
+        } else {
+            target.push(players);
+        }
+        target.forEach(async (player) => {
+            await playerTable.upsert([
+                {
+                    'id': player.id,
+                    'name': player.name,
+                    'playerClass': player.playerClass,
+                    'playerLv': player.playerLv,
+                    'hp': player.hp,
+                    'mp': player.mp
+                }
+            ]);
+        });
+        return players;
+    }
+    
     async newPlayer(player) {
         this.database.runTransaction(async (err, transaction) => {
             if (err) {
