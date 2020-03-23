@@ -8,6 +8,12 @@ module.exports = class Room
         this._broadcast = broadcast;
         this._systemCommands = new Map();
     }
+    broadcast(name, message){
+        this._broadcast(name,message);
+    }
+    setupBroadcaseHandler(broadcast){
+        this._broadcast = broadcast;
+    }
     who(){
         return Array.from(this._players.keys());
     }

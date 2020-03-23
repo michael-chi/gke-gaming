@@ -6,6 +6,8 @@ const Room = require('./models/room');
 const GameEventHandler = require('./utils/gameEventHandler');
 const CommandManager = require('./skills/factory');
 const GameWorldEventBrocast = require('./utils/firestore_native');
+const log = require('./utils/logger');
+
 var firestore = new GameWorldEventBrocast(null);
 
 const serverPort = 9999,
@@ -17,32 +19,10 @@ const serverPort = 9999,
     websocketServer = new WebSocket.Server({ server });
 
 var room = null;
-const eventHandler = new GameEventHandler();
 
 const CLIENTS = new Map();
 const CLIENT_SOCKETS = new Map();
 
-function log(msg) {
-    console.log(`[GameServer]${msg}`);
-}
-function broadcast(name, message) {
-    log(`broadcasting to ${name}:${message}`);
-
-    if (name == '*') {
-        firestore.updateWorldwideMessages(name, '*', message);
-        websocketServer.clients.forEach(ws => {
-            ws.send(message);
-        });
-    } else {
-        room.players.forEach(ppl => {
-            if (ppl.name == name) {
-                CLIENTS.get(ppl.name).send(message);
-                firestore.updateWorldwideMessages(ppl.name, ppl.name, message);
-            }
-        })
-    }
-
-}
 app.get('/', function (req, res) {
     res.send('ok');
 });
@@ -56,7 +36,9 @@ websocketServer.on('connection', async (ws, req) => {
     const clientName = ip + ':' + port;
     log(`${clientName} is connected`);
     if (room == null) {
-        room = new Room(broadcast);
+        room = new Room(null);
+        //room, firestore, ws, clients
+        bootstrapper.configureRoom(room, websocketServer, CLIENTS);
     }
     ws.send(clientName + ' type login [name] to login to the game');
     ws.on('message', async function message(message) {
@@ -72,16 +54,9 @@ websocketServer.on('connection', async (ws, req) => {
             var name = message.split(' ')[1];
             var user = await Spanner.EnsurePlayer(name);
             log(`created user object ${user.name}`);
-
-            bootstrapper.configure(user, async function (data) {
-                var spanner = Spanner.CreateSpannerClient();
-                await spanner.writePlayerWithMutations(user);
-                log('fired event:' + data.event);
-                if(data.event == 'login' || data.event == 'quit'){
-                    firestore.updateGameWorldStastics(room.who());
-                }
-                firestore.updateWorldwideMessages(user, '*', data.event);
-            });
+            //  Setup event handler so we get everything happened in the game world
+            bootstrapper.configurePlayer(user, room);
+            
             user.login();
 
             CLIENTS.set(user.name, ws);
@@ -105,7 +80,7 @@ websocketServer.on('connection', async (ws, req) => {
                 room);
             var msg = factory.do(message);
             if (msg) {
-                broadcast(msg.notifyUser, msg.message);
+                room.broadcast(msg.notifyUser, msg.message);
             }
             else {
                 ws.send('what do you want to do ?');

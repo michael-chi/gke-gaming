@@ -1,7 +1,7 @@
 const InGameMessage = require('../utils/inGameMessage');
 const { uuid } = require('uuidv4');
 var Emitter = require('events').EventEmitter;
-const GameEventHandler = require('../utils/gameEventHandler');
+//const GameEventHandler = require('../utils/gameEventHandler');
 
 var events = new Emitter();
 var util = require('util');
