@@ -1,3 +1,4 @@
+const InGameMessage = require('../utils/inGameMessage.js');
 module.exports = class SkillManager {
     constructor(issuer, findPlayerFunc, room){
         this.findPlayerFunc = findPlayerFunc;
