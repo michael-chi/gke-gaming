@@ -64,7 +64,7 @@ websocketServer.on('connection', async (ws, req) => {
             room.join(user);
         } else if (message == 'quit') {
             var me = room.players.get(CLIENT_SOCKETS.get(clientName));
-            broadcast(CLIENT_SOCKETS.get(clientName), 'bye');
+            //broadcast(CLIENT_SOCKETS.get(clientName), 'bye');
             CLIENTS.delete(me.name);
             CLIENT_SOCKETS.delete(clientName);
 

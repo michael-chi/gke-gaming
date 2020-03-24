@@ -1,30 +1,118 @@
-const WebSocket =require('../game-core/node_modules/ws');
+const WebSocket = require('../game-core/node_modules/ws');
 const readline = require('readline').createInterface({
     input: process.stdin,
     output: process.stdout
-  });
+});
 
 var standard_input = process.stdin;
 standard_input.setEncoding('utf-8');
 
-var host = "34.102.250.216";
-//var host = "127.0.0.1:9999";
+//var host = "34.102.250.216";
+var host = "127.0.0.1:9999";
 //var host = "game.michaelchi.net";
 var current = '';
-socket = new WebSocket("ws://" + host + "/ws");
-socket.onmessage = function (event) {
-    if(current == ''){
+const reg = /HP:([\d]*)/g;
 
-    }else if(current == 'list'){
-        var players = JSON.parse(event.data);
-        current = 'attack';
-        
-    }else if(current == 'attack'){
+// var matches = reg.exec('================== \
+// test \
+// -------------- \
+// level 1 Warrior \
+// HP:200  MP:120 \
+// ==================');
+// console.log(matches[1]);
+
+// return;
+
+
+socket = new WebSocket("ws://" + host + "/ws");
+
+function ramdomString(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
+const myId = ramdomString(6);
+
+
+
+function sleep(s) {
+    return new Promise(resolve => setTimeout(resolve, s * 1000));
+}
+function send(cmd) {
+    console.log(`>> send:${cmd}`);
+    socket.send(cmd);
+}
+function findVictim(players) {
+    var index = Math.round(Math.random() * players.length);
+    console.log(index);
+    if (index < players.length && players[index] != myId) {
+        var victim = players[index];
+        console.log(`> victim:${victim}`);
+        return victim;
+    } else {
+        return findVictim(players);
+    }
+}
+
+async function eventHandler(event) {
+    console.log(`==>> ${event.data}`);
+    var match = reg.exec(event.data);
+    if (match && match[1] == '0') {
+        send('quit');
+        await socket.close();
+    }
+    else if (event.data.includes('W#@$F')) {
+        //  end session
+        send('quit');
+        await socket.close();
+    }
+    else if (current == 'login') {
+        send(`login ${myId}`);
+        current = 'list';
+    } else if (current == 'list') {
+        if (event.data.includes('Yo!')) {
+            //  skip welcome message
+            send('list');
+        } else {
+            console.log(`>> ${event.data}`);
+            var players = JSON.parse(event.data);
+            console.log(`> players in the room:${event.data}`);
+            current = 'attack';
+            var index = Math.round(Math.random() * players.length);
+            console.log(index);
+            if (Math.random() >= 0.3) {
+                var victim = findVictim(players);;
+                console.log(`> victim:${victim}`);
+                send(`attack ${victim}`);
+                await sleep(Math.round(Math.random() * 5));
+
+            } else {
+                await sleep(Math.round(Math.random() * 5));
+                if (Math.random() >= 0.5) {
+                    send('look');
+                } else {
+                    send('stat');
+                }
+            }
+        }
+    } else if (current == 'attack') {
+        await sleep(Math.random() * 5);
+        current = 'list';
+
+        socket.send('list');
 
     }
     console.log(event.data);
+}
+socket.onmessage = async function (event) {
+    eventHandler(event);
 };
-socket.onerror = function(err){
+socket.onerror = function (err) {
     console.log('err');
     console.log(err);
     console.log(err.data);
@@ -36,12 +124,12 @@ socket.onopen = function (event) {
     if (socket.readyState == WebSocket.OPEN) {
         readline.setPrompt('Game>>');
         readline.prompt();
-        current = 'list';
+        current = 'login';
         socket.send('list');
 
-        readline.on('line', function(line){
+        readline.on('line', function (line) {
             socket.send(line);
-            if(line == 'quit'){
+            if (line == 'quit') {
                 readline.close();
             }
         });

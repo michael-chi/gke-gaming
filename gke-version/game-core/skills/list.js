@@ -14,6 +14,6 @@ module.exports = class Look {
     }
     
     describe (me, target){
-        return new InGameMessage(me.name,`[${this._room.who()}]`);
+        return new InGameMessage(me.name,`${JSON.stringify(this._room.who())}`);
     }
 }
