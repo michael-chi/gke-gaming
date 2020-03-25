@@ -21,28 +21,23 @@ At the moment it's still very simple design
 ```mermaid
 classDiagram
 
-PlayerState --|> Player
-
-class Player {
-    int hp
-    int mp
-    int playerLv
-    string playerClass
-    string name
-}
+    PlayerState --|> Player
+    Player: int hp
+    Player: int mp
+    Player: int playerLv
+    Player: string playerClass
+    Player: string name
 ```
 
 - GameWorldStastic have latest in-game player lists
 
 ```mermaid
 classDiagram
-GameWorldStastic --|> Stastic
+    GameWorldStastic --|> Stastic
 
-class Stastic{
-    Date time
-    string[] players
-    string id
-}
+    Stastic:Date time
+    Stastic:string[] players
+    Stastic: string id
 ```
 
 -   GameWorldBrocast logs every broadcast messages
@@ -50,12 +45,11 @@ class Stastic{
 
 ```mermaid
 classDiagram
-GameWorldBrocast --|> Message
-class Message{
-    uuid id
-    Date time
-    string actor
-    string target
-    string message
-}
+    GameWorldBrocast --|> Message
+    Message:uuid id
+    Message:Date time
+    Message:string actor
+    Message:string target
+    Message:string message
+ 
 ```
