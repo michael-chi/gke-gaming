@@ -1,13 +1,23 @@
 ## Overview
-|    Item    | Feature |
-| ---------- | --- |
-| How to scale cluster to support simulator instances |  [VPA](https://cloud.google.com/kubernetes-engine/docs/how-to/vertical-pod-autoscaling?hl=zh-tw#getting_resource_recommendations) |
-When players increases, I want to see my MUD pod scales out      | HPA |
-When players increases hugely, I want to see my cluster scales out accordingly     | VPA and [Node auto provisioning](https://cloud.google.com/kubernetes-engine/docs/how-to/node-auto-provisioning), cluster auto scale  |
+|    Item    | 
+| ---------- |
+| How to scale cluster to support simulator instances | 
+When players increases, I want to see my MUD pod scales out    |
+When players increases hugely, I want to see my cluster scales out accordingly    |
+
+## References
+
+[VPA](https://cloud.google.com/kubernetes-engine/docs/how-to/vertical-pod-autoscaling?hl=zh-tw#getting_resource_recommendations)
+
+[HPA](https://cloud.google.com/kubernetes-engine/docs/how-to/horizontal-pod-autoscaling?hl=zh-tw)
+
+[Node Auto Provisioning](https://cloud.google.com/kubernetes-engine/docs/how-to/node-auto-provisioning)
+
+[Cluster auto-scaling](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-autoscaler?hl=zh-tw)
 
 --------
 
-### Scale my Simulator
+### Scale Simulator
 
 I will have simulator and mud running on my GKE cluster, I want to have them running on different node pools for better management.
 
@@ -153,7 +163,7 @@ kubectl apply -f ./k8s/simulator-deployment.yaml
 ```
 
 --------
-### Scale my MUD Game
+### Scale MUD Game server
 
 When players increases, I want to see my MUD pod scales out. But before I can really scale my MUD game I need to first scale my simulator to generate more traffic.
 
@@ -220,6 +230,7 @@ spec:
       name: memory
       targetAverageValue: 2500Mi
 ```
+-------
 ## Tests
 
 1. Delete "simulator" node pool, deploy Simulator
