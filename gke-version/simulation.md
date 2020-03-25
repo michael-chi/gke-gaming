@@ -243,6 +243,10 @@ spec:
 2. Create "sumulator" node pool, delete auto-created node pool, deploy Simulator
 -   Simulator pods scheduled to "Simulator" node pool
 
+3. Run stress tester to generate loads
+-   MUD pod immediately scales from 1 (default) to 10
+
+
 ## Observation
 
 - If I created a node pool with everything fit node requirements, POD scheduled to that node pool. However, POD can always failed to pull images from container registry, so I end up with pre-create node pool.
