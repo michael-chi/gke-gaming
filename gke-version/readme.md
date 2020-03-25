@@ -75,4 +75,4 @@ kubectl apply -f ./k8s/mud-ingress.yaml
 
 ## Simulation
 
-Finally, thru simulation we can observe how VPA/HPA and node auto provisioning
+Finally, thru simulation we can observe how VPA/HPA and node auto provisioning, details [here](./simulation.md)
