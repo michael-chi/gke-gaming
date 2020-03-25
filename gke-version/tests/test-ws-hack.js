@@ -7,7 +7,7 @@ const readline = require('readline').createInterface({
 var standard_input = process.stdin;
 standard_input.setEncoding('utf-8');
 
-var host = "34.102.250.216";
+var host = process.env.HOST || "34.102.250.216";
 //var host = "127.0.0.1:9999";
 //var host = "game.michaelchi.net";
 function randomString(length) {
@@ -48,7 +48,7 @@ socket.onmessage = function (event) {
         console.log(event.data);
         if (index++ < count) {
             const garbage = 'stat';//randomString(1000000000 * 0.01);
-            console.log('sending...' + i);
+            console.log('sending...' + index);
             socket.send(garbage);
         }
     }
