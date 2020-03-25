@@ -52,6 +52,10 @@ app.js ->> spanner.js: UpdatePlayer()
 spanner.js ->> Cloud Spanner: log event
 ```
 
+### [Firestore Integration](./firestore_native.md)
+
+Also to get real time updates from in-game world, I integrated with [Firestore](./firestore_native.md)
+
 ### Update Dockerfile and Yaml files
 
 To use Spanner node.js SDK we need to make sure our environment runs grpc, I've updated my [Dockerfile](./game-core/Dockerfile) to reflect new requirements.
@@ -68,3 +72,7 @@ kubectl apply -f ./k8s/mud-service.yaml
 kubectl apply -f ./k8s/mud-ingress.yaml
 ```
 
+
+## Simulation
+
+Finally, thru simulation we can observe how VPA/HPA and node auto provisioning

@@ -21,8 +21,7 @@ RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
 WORKDIR /home/server
 ## RUN mkdir /home/server/examples/nodejs-simple/tests && mkdir /home/server/examples/nodejs-simple/game-core
 
-COPY ./tests ./tests
-COPY ./game-core ./game-core
+COPY . .
 RUN cd ./tests && \
     npm install ../game-core
 

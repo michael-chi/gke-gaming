@@ -20,7 +20,7 @@ spec:
         spec:
             containers:
             -   name: mud
-                image: gcr.io/kalschi-agones/mud:gke-v1
+                image: gcr.io/kalschi-agones/mud:gke-v2
                 imagePullPolicy: Always
                 ports:
                     -   name: ws

@@ -59,5 +59,3 @@ class Message{
     string message
 }
 ```
-
-### Simulator

@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
     name: simulator
 spec:
-    replicas: 1000
     strategy:
         type: RollingUpdate
         rollingUpdate:
@@ -12,7 +11,7 @@ spec:
     selector:
         matchLabels:
             app: simulator
-    replicas: 1
+    replicas: 100
     template:
         metadata:
             labels:
@@ -20,7 +19,7 @@ spec:
         spec:
             containers:
             -   name: simulator
-                image: gcr.io/kalschi-agones/simulator:gke-v1
+                image: gcr.io/kalschi-agones/simulator:v1
                 imagePullPolicy: Always
                 env:
                     - name: HOST
