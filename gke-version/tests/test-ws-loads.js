@@ -25,7 +25,7 @@ function ramdomString(length) {
     return result;
 }
 
-const myId = ramdomString(6);
+var myId = ramdomString(6);
 
 
 
@@ -33,7 +33,7 @@ function sleep(s) {
     return new Promise(resolve => setTimeout(resolve, s * 1000));
 }
 function send(cmd) {
-    console.log(`>> send:${cmd}`);
+    console.log(`>>>>>>>>>>>>> send:${cmd}`);
     socket.send(cmd);
 }
 function findVictim(players) {
@@ -52,8 +52,14 @@ async function eventHandler(event) {
     console.log(`==>> ${event.data}`);
     var match = reg.exec(event.data);
     if (match && match[1] == '0') {
-        send('quit');
-        await socket.close();
+        //send('quit');
+        current = 'login';
+        myId = ramdomString(6);
+        send(`login ${myId}`);
+        //await socket.close();
+    }
+    else if(event.data.includes('damage!')){
+        // skip
     }
     else if (event.data.includes('W#@$F')) {
         //  end session
