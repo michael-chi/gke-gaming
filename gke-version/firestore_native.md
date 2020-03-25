@@ -6,11 +6,11 @@ In this case, everytime when in-game player state changes, such as attacked by o
 
 ```mermaid
 sequenceDiagram
-
 Players ->> InGameEventHandler: hp/mp/level changes
 InGameEventHandler ->> firestore_native.js: update state
 firestore_native.js ->> Firestore: Update/Insert documents
 ```
+
 
 ### Firestore Design
 
@@ -21,11 +21,11 @@ At the moment it's still very simple design
 ```mermaid
 classDiagram
     PlayerState --|> Player
-    Player: int hp
-    Player: int mp
-    Player: int playerLv
-    Player: string playerClass
-    Player: string name
+        Player: int hp
+        Player: int mp
+        Player: int playerLv
+        Player: string playerClass
+        Player: string name
 ```
 
 - GameWorldStastic have latest in-game player lists
@@ -33,9 +33,9 @@ classDiagram
 ```mermaid
 classDiagram
     GameWorldStastic --|> Stastic
-    Stastic:Date time
-    Stastic:string[] players
-    Stastic: string id
+        Stastic: Date time
+        Stastic: string[] players
+        Stastic: string id
 ```
 
 -   GameWorldBrocast logs every broadcast messages
@@ -44,9 +44,9 @@ classDiagram
 ```mermaid
 classDiagram
     GameWorldBrocast --|> Message
-    Message:uuid id
-    Message:Date time
-    Message:string actor
-    Message:string target
-    Message:string message
+        Message: uuid id
+        Message: Date time
+        Message: string actor
+        Message: string target
+        Message: string message
 ```
