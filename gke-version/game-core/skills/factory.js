@@ -1,3 +1,4 @@
+const InGameMessage = require('../utils/inGameMessage.js');
 module.exports = class SkillManager {
     constructor(issuer, findPlayerFunc, room){
         this.findPlayerFunc = findPlayerFunc;
@@ -8,7 +9,7 @@ module.exports = class SkillManager {
         var fragments = cmd.split(' ');
         var target = fragments.length > 1 ? fragments[1]: null;
         var skill = fragments[0];
-
+        console.log(`require('./${skill}')...`);
         const Skill = eval(`require('./${skill}');`);
         
         var victim = null;
@@ -27,7 +28,7 @@ module.exports = class SkillManager {
                 victim = this.findPlayerFunc(target);
             }
             if(victim){
-                return skill.attack(target);
+                return skill.attack(victim);
             }else{
                 return new InGameMessage(this.player.name,`who are you looking at ?`);
             }

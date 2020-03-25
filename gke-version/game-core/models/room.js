@@ -8,6 +8,12 @@ module.exports = class Room
         this._broadcast = broadcast;
         this._systemCommands = new Map();
     }
+    broadcast(name, message){
+        this._broadcast(name,message);
+    }
+    setupBroadcaseHandler(broadcast){
+        this._broadcast = broadcast;
+    }
     who(){
         return Array.from(this._players.keys());
     }
@@ -17,7 +23,7 @@ module.exports = class Room
     }
     leave(user){
         this._broadcast('*',`Yo! ${user.name} just leave this match.`);
-        this._players.delete(user.name);
+        console.log(`delete ${user.name} from collection:${this._players.delete(user.name)}`);
     }
     get players(){return this._players;}
  

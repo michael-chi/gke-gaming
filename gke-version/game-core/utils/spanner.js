@@ -1,16 +1,12 @@
 const { Spanner } = require('@google-cloud/spanner');
 var User = require('../models/user');
-var GameEventHandler = require('./gameEventHandler');
 var GameConfiguration = require('../models/config');
-
-var bootstrapper = new GameEventHandler();
-
+const log = require('./logger');
 Array.prototype.toString = function () {
     const temp = [];
     this.forEach(item => temp.push(`'${item}'`));
     return temp.join();
 }
-
 
 function default_read_formatter(row) {
     const result = row.toJSON({ wrapNumbers: true });
@@ -25,30 +21,40 @@ function default_read_formatter(row) {
 function default_write_formatter(row) {
 
 }
-function newSpannerClient() {
-    const spanner = GameConfiguration.Spanner();
-    console.log(JSON.stringify(spanner));
-    return new ProfileStorage(spanner.PROJECT_ID, spanner.INSTANCE_ID, spanner.DATABASE_ID,
-        null, null);
-}
 
-class ProfileStorage {
-    
-    constructor(projectId, instanceId, databaseId, read_formatter, write_formatter) {
-        this.read_formatter = read_formatter ? read_formatter : default_read_formatter;
-        this.write_formatter = write_formatter ? write_formatter : default_write_formatter;
-        this.spanner = new Spanner({
-            projectId: projectId,
-        });
-        // Gets a reference to a Cloud Spanner instance
-        this.instance = this.spanner.instance(instanceId);
-        this.database = this.instance.database(databaseId);
+
+module.exports = class CloudSpanner {
+    constructor(read_formatter,write_formatter) {
+        try{
+            const config = GameConfiguration.Spanner();
+            this.read_formatter = read_formatter ? read_formatter : default_read_formatter;
+            this.write_formatter = write_formatter ? write_formatter : default_write_formatter;
+            this.spanner = new Spanner({
+                projectId: config.PROJECT_ID,
+            });
+            // Gets a reference to a Cloud Spanner instance
+            this.instance = this.spanner.instance(config.INSTANCE_ID);
+            this.database = this.instance.database(config.DATABASE_ID);
+        }catch (err) {
+            log('==================');
+            log(err);
+        }
     }
-    static CreateSpannerClient() {
-        return newSpannerClient();
-    }
+    // constructor(projectId, instanceId, databaseId, read_formatter, write_formatter) {
+    //     this.read_formatter = read_formatter ? read_formatter : default_read_formatter;
+    //     this.write_formatter = write_formatter ? write_formatter : default_write_formatter;
+    //     this.spanner = new Spanner({
+    //         projectId: projectId,
+    //     });
+    //     // Gets a reference to a Cloud Spanner instance
+    //     this.instance = this.spanner.instance(instanceId);
+    //     this.database = this.instance.database(databaseId);
+    // }
+    // static CreateSpannerClient() {
+    //     return newSpannerClient();
+    // }
     static async EnsurePlayer(name) {
-        const spanner = newSpannerClient();
+        const spanner = new CloudSpanner();
         var existing = await spanner.readPlayer(name);
         console.log(existing);
         console.log(`player alread exists:${existing != null && existing != 'undefined'}`);
@@ -56,14 +62,19 @@ class ProfileStorage {
         if (!existing) {
             console.log(`creating new player in Spanner...`);
             var user = new User(name, 'Warrior', 120, 120, 1, null);
-            existing = await spanner.newPlayer(user);
+            existing = await spanner.writePlayerWithMutations(user);
+            //existing = await spanner.newPlayer(user);
             console.log(`creating new player in Spanner...done`);
             console.log(`============\r\n${existing.toString()}`);
         }
-        bootstrapper.configure(existing, async function(data){
-            var spanner = newSpannerClient();
-            await spanner.updatePlayer(existing);
-        });
+
+        // var bootstrapper = new GameEventHandler();
+
+        // bootstrapper.configure(existing, async function (data) {
+        //     var spanner = newSpannerClient();
+        //     //await spanner.updatePlayer(existing);
+        //     await spanner.writePlayerWithMutations(existing);
+        // });
         return existing;
     }
     async readPlayer(name) {
@@ -126,6 +137,28 @@ class ProfileStorage {
             }
         });
     }
+    async writePlayerWithMutations(players) {
+        var playerTable = this.database.table('players');
+        var target = [];
+        if (players instanceof Array) {
+            target = players;
+        } else {
+            target.push(players);
+        }
+        target.forEach(async (player) => {
+            await playerTable.upsert([
+                {
+                    'id': player.id,
+                    'name': player.name,
+                    'playerClass': player.playerClass,
+                    'playerLv': player.playerLv,
+                    'hp': player.hp,
+                    'mp': player.mp
+                }
+            ]);
+        });
+        return players;
+    }
 
     async newPlayer(player) {
         this.database.runTransaction(async (err, transaction) => {
@@ -162,4 +195,3 @@ class ProfileStorage {
     }
 }
 
-module.exports = ProfileStorage;

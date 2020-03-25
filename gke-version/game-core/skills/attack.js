@@ -15,8 +15,9 @@ module.exports = class Attack{
         if (!target) {
             broadcast(CLIENT_SOCKETS.get(clientName), 'There no one called ' + targetName);
         } else {
-            if (this._me) {
-                var msg = this._me.attack(this._me, target);
+            if (this._me &&
+                    this._me.state == 'normal') {
+                var msg = this._me.attack(target);
                 return msg;//new InGameMessage(this._me.name, msg);
             } else {
                 return new InGameMessage('*', 'W#@$F...something went wrong!');

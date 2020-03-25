@@ -1,7 +1,7 @@
 const InGameMessage = require('../utils/inGameMessage');
 const { uuid } = require('uuidv4');
 var Emitter = require('events').EventEmitter;
-const GameEventHandler = require('../utils/gameEventHandler');
+//const GameEventHandler = require('../utils/gameEventHandler');
 
 var events = new Emitter();
 var util = require('util');
@@ -25,6 +25,7 @@ class User {
 
         this.emit('new', this);
     }
+    get state() {return this._state;}
     dying(){
         this._state = STATE_DYING;
         this._hp = 0;
@@ -33,7 +34,7 @@ class User {
     }
     resurrection(){
         this._state = STATE_NORMAL;
-        this._ = 200;
+        this._hp = 200;
 
         this.emit('resurrection', this);
     }
@@ -45,11 +46,15 @@ class User {
     }
     login(){
         this.emit('login',this);
+        //  everytime the player logs in, ensure he is able to fight again...for demo purpose
+        if(this._hp <= 0)
+            this.resurrection();
     }
     quit(){
         this.emit('quit',this);
     }
     attack(target){
+        console.log(`${this._self.name} | ${target.name}`)
         if(this._self._state != STATE_NORMAL){
             return new InGameMessage(this._self.name, 'you are dying, you can\'t do anything now...');
         }
