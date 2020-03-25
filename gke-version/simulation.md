@@ -1,10 +1,10 @@
 ## Overview
+|    Item    | Feature |
+| ---------- | --- |
+| How to scale cluster to support simulator instances |  [VPA](https://cloud.google.com/kubernetes-engine/docs/how-to/vertical-pod-autoscaling?hl=zh-tw#getting_resource_recommendations) |
+When players increases, I want to see my MUD pod scales out      | HPA |
+When players increases hugely, I want to see my cluster scales out accordingly     | VPA and [Node auto provisioning](https://cloud.google.com/kubernetes-engine/docs/how-to/node-auto-provisioning), cluster auto scale  |
 
-| Item        | Feature  |
-| ------------- |:-------------:|:-------------:|
-| How to scale cluster to support simulator instances | [VPA](https://cloud.google.com/kubernetes-engine/docs/how-to/vertical-pod-autoscaling?hl=zh-tw#getting_resource_recommendations) |
-| When players increases, I want to see my MUD pod scales out      | HPA | 
-| When players increases hugely, I want to see my cluster scales out accordingly     | VPA and [Node auto provisioning](https://cloud.google.com/kubernetes-engine/docs/how-to/node-auto-provisioning), cluster auto scale      |
 --------
 
 ### Scale my Simulator
