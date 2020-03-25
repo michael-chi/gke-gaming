@@ -72,7 +72,36 @@ kubectl apply -f ./k8s/mud-service.yaml
 kubectl apply -f ./k8s/mud-ingress.yaml
 ```
 
+### Verify
 
-## Simulation
+I have a simple websocket client created to test game server, run below node application and start with "login" command to login as player
+
+```bash
+cd ./tests
+node test-ws
+```
+
+You should see messages coming from game server like below.
+
+```shell
+node test-ws
+undefined
+Game>>::ffff:130.211.2.93:58977 type login [name] to login to the game
+Game>>login tester
+Yo! tester just joined this match.
+look
+A empty game room
+you see 'gWkeLg','ehyvZR','9KE84O','QC17nc','mrcHkD','QeFo9T','ImFqo7','pQ9Xbu','YlJ04O','sYWOeq','WVsPZZO','NoRRETo','cnqYv49','tester' standing in this room.
+```
+------
+### Simulation
 
 Finally, thru simulation we can observe how VPA/HPA and node auto provisioning, details [here](./simulation.md)
+
+### Stress Test Game Server
+
+To further understand how GKE cluster scales and schedule PODs, I have a [load test program](./tests/test-ws-hack.js) created.
+
+A [Dockerfile](./Dockerfile.hack) and [Deployment yaml](./tests/k8s/hack-deployment.yaml) also been created to send large commands to game server.
+
+To deplpy stress tester to GKE cluster you must either have Cloud NAT created in same region, or create a Public cluster which nodes equipped with Public IP so testers are able to connect to game server.
