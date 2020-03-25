@@ -20,7 +20,6 @@ At the moment it's still very simple design
 
 ```mermaid
 classDiagram
-
     PlayerState --|> Player
     Player: int hp
     Player: int mp
@@ -34,7 +33,6 @@ classDiagram
 ```mermaid
 classDiagram
     GameWorldStastic --|> Stastic
-
     Stastic:Date time
     Stastic:string[] players
     Stastic: string id
@@ -51,5 +49,4 @@ classDiagram
     Message:string actor
     Message:string target
     Message:string message
- 
 ```
