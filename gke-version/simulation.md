@@ -77,7 +77,7 @@ gcloud container node-pools create "mud" \
       --disk-size "10" --node-labels=dedicated=mud \
       --node-taints dedicated=mud:NoSchedule \
       --enable-autoscaling --num-nodes "1" --min-nodes="1" --max-nodes="10" \
-      --scopes gke-default,default,storage-full
+      --scopes=https://www.googleapis.com/auth/cloud-platform
 gcloud container node-pools update "mud"  --cluster $CLUSTER --enable-autoprovisioning --zone $ZONE
 ```
 

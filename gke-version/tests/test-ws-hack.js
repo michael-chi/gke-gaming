@@ -36,17 +36,19 @@ socket.onopen = function (event) {
     //  send 1 GB data to server...
     if (socket.readyState == WebSocket.OPEN) {
         socket.send(`login ${randomString(7)}`);
-        
+
     } else {
         console.log('NOT Connected yet');
     }
 };
+const count = 100000000;
+var index = 0;
 socket.onmessage = function (event) {
     {
-        const count = 100000000;
-        for (var i = 0; i <= count; i++) {
-            const garbage = 'look';//randomString(1000000000 * 0.01);
-            console.log('sending...' + count);
+        console.log(event.data);
+        if (index++ < count) {
+            const garbage = 'stat';//randomString(1000000000 * 0.01);
+            console.log('sending...' + i);
             socket.send(garbage);
         }
     }
