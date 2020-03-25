@@ -15,6 +15,7 @@ When players increases hugely, I want to see my cluster scales out accordingly  
 
 [Cluster auto-scaling](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-autoscaler?hl=zh-tw)
 
+[Custom Metrics Auto Scaling](https://cloud.google.com/kubernetes-engine/docs/tutorials/custom-metrics-autoscaling?hl=zh-tw#step1)
 --------
 
 ### Scale Simulator
