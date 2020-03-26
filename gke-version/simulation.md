@@ -18,18 +18,24 @@ When players increases hugely, I want to see my cluster scales out accordingly  
 [Custom Metrics Auto Scaling](https://cloud.google.com/kubernetes-engine/docs/tutorials/custom-metrics-autoscaling?hl=zh-tw#step1)
 
 
---------
-
+Configure Auto-Scaling
+=====
 ### Scale Simulator
 
-I will have simulator and mud running on my GKE cluster, I want to have them running on different node pools for better management.
+We can surely scales Simulator to required instances, Simulator can either running on Auto provisioned node pool, or running or pre-created node pool.
 
-- In order to fo that, I am enabling [Node auto provisioning](https://cloud.google.com/kubernetes-engine/docs/how-to/node-auto-provisioning) and [Cluster auto-scaling](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-autoscaler?hl=zh-tw)
+#### Running on Auto-Provisioning Node Pool
+
+- In order to have GKE cluster auto provision new node pool to schedule pods, I am enabling [Node auto provisioning](https://cloud.google.com/kubernetes-engine/docs/how-to/node-auto-provisioning) and [Cluster auto-scaling](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-autoscaler?hl=zh-tw)
+
+This will allows GKE cluster to create new node pool when existing pool does not fit for pods, it automatically honor node selection terms or taints/tolerations when reqiored/
 
 >CAUTION: Enabling Cluster Autoscale can cause GKE master to restart
 
     -   Please be sure to specify "--autoprovisioning-service-account" so that we can configure IAM permission for it when required
+    -   Auto provisioned nodes may also requires access scope specified, supply "--autoprovisioning-scopes" to assign scopes, "https://www.googleapis.com/auth/cloud-platform" for full access
     -   Service Account must have Storage Object Viewer and Storage Admin permission
+
 ```bash
 # Enable cluster auto-scaling for default node pool
 export CLUSTER=game-gke
@@ -47,14 +53,17 @@ gcloud container clusters update $CLUSTER \
   --max-cpu 32 \
   --max-memory 64 \
   --zone $ZONE \
-  --autoprovisioning-service-account $SVC_ACCT 
+  --autoprovisioning-service-account $SVC_ACCT \
+  --autoprovisioning-scopes=https://www.googleapis.com/auth/cloud-platform
 
 gcloud container node-pools update $POOL --enable-autoprovisioning
 ```
 
+####  Running on Pre-Created Node Pool
+
+We can also pre-create node pool for pods. 
 
 - Create a Node Pool for simulator and game server to run
-
 
 >Note that in order to have container able pull images from registry, you have to specify storage-ro or storage-full scope
 >Otherwise you would see a lot of ImagePullBackoff error.
@@ -165,7 +174,8 @@ spec:
 kubectl apply -f ./k8s/simulator-deployment.yaml
 ```
 
---------
+Scaling Game Server
+=======
 ### Scale MUD Game server
 
 When players increases, I want to see my MUD pod scales out. But before I can really scale my MUD game I need to first scale my simulator to generate more traffic.
@@ -179,7 +189,7 @@ kubectl create -f ./k8s/mud-vpa-off.yaml
 kubectl get vpa mud-vpa --output yaml
 ```
 
-Outpuy
+Output
 ```yaml
   recommendation:
     containerRecommendations:
@@ -233,22 +243,27 @@ spec:
       name: memory
       targetAverageValue: 2500Mi
 ```
--------
+
+Test and Ovservation
+=======
 ## Tests
+1. Delete "mud" node pool, deploy simulator
+  - New node pool automatically created, mud pods scheduled on new pool
+  - As loads going up, new nodes created, new mud pods created and scheduled on to newly created nodes
 
-1. Delete "simulator" node pool, deploy Simulator
--   GKE provision new node pool
--   Simulators scheduled on to newly created node pool
-
-2. Create "sumulator" node pool, delete auto-created node pool, deploy Simulator
--   Simulator pods scheduled to "Simulator" node pool
-
+2. Create "mud" node pool, delete auto-provisioned node pool, deploy simulator
+  - Existing mud pods running on auto-provisioned node pool evicted, new mud pod scheduled on to mud node pool
+  
 3. Run stress tester to generate loads
--   MUD pod immediately scales from 1 (default) to 10
-
+  - MUD pod immediately scales from 1 (default) to 10
 
 ## Observation
 
 - If I created a node pool with everything fit node requirements, POD scheduled to that node pool. However, POD can always failed to pull images from container registry, so I end up with pre-create node pool.
 
 - If no suitable node pool or nodes, when Node Auto Provisioning is enabled, GKE automatically create node pool with all requirement met. However, some permissions may be missing for these automatically created nodes.
+
+Next Steps
+=======
+
+* In test step 2, when existing pods evicted, may need to check if Pod Disruption Budget helps keep service serving
