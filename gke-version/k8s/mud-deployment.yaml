@@ -33,7 +33,7 @@ spec:
                   effect: NoSchedule
             containers:
             -   name: mud
-                image: gcr.io/kalschi-agones/mud:gke-v2
+                image: gcr.io/kalschi-agones/mud:gke-v3
                 imagePullPolicy: Always
                 ports:
                     -   name: ws

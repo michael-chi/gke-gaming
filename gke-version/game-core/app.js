@@ -31,10 +31,11 @@ var bootstrapper = new GameEventHandler();
 //when a websocket connection is established
 websocketServer.on('connection', async (ws, req) => {
     //send feedback to the incoming connection
-    const ip = req.connection.remoteAddress;
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const port = req.connection.remotePort;
     const clientName = ip + ':' + port;
     log(`${clientName} is connected`);
+    console.log(JSON.stringify({clientIp: ip, clientPort: port, time:Date.now(), event:'connected'}));
     if (room == null) {
         room = new Room(null);
         //room, firestore, ws, clients
