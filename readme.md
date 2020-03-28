@@ -12,6 +12,8 @@ gcloud container clusters get-credentials $GKE_NAME --region $REGION
 
 Once connected, execute below commands
 
+    -   Bakcend config is required to change default connection timeout of 30 seconds
+    
 ```bash
 cd gke-version/game-core
 docker build . -t gcr.io/$PROJECT_ID/%IMAGE_NAME:%TAG

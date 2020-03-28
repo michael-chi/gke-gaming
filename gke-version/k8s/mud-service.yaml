@@ -3,8 +3,9 @@ apiVersion: v1
 metadata:
   name: mud
   annotations:
+    # Use Network Endpoint Group so traffic directly laod balanced to pods
     cloud.google.com/neg: '{"ingress": true}'
-    beta.cloud.google.com/backend-config: '{"ports": {"8080":"mud-backendconfig"}}'
+    beta.cloud.google.com/backend-config: '{"ports": {"9999":"mud-backendconfig"}}'
 spec:
   sessionAffinity: ClientIP 
   selector:
