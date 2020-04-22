@@ -51,7 +51,7 @@ spec:
             #       effect: NoSchedule
             containers:
             -   name: mud
-                image: gcr.io/kalschi-istio/mud:gke-v1
+                image: gcr.io/kalschi-istio/mud:gke-v21
                 imagePullPolicy: Always
                 ports:
                     -   name: ws
@@ -66,11 +66,13 @@ spec:
                     initialDelaySeconds: 30
                 resources:
                     requests:
-                        cpu: 50m
+                        cpu: 100m
                         memory: 3.5G   
                 env:
                     - name: PROJECT_ID
                       value: kalschi-istio
+                    - name: LOCAL_MODE
+                      value: 'true'
                     # - name: INSTANCE_ID
                     #   value: game-spanner
                     # - name: DATABASE_ID

@@ -1,13 +1,15 @@
 var events = require('events');
-const CloudSpanner = require('./spanner');
-const Firestore = require('./firestore_native');
+// const CloudSpanner = require('./spanner');
+// const Firestore = require('./firestore_native');
 var Firebolt = require('../skills/firebolt');
 var Smash = require('../skills/smash');
 const log = require('../utils/logger');
-const firestore = new Firestore('');
-
-
-const spanner = new CloudSpanner();
+// const firestore = new Firestore('');
+// const spanner = new CloudSpanner();
+const DataStoreFactory = require('./dataStoreFactory');
+const dataStoreFactory = new DataStoreFactory();
+const firestore = dataStoreFactory.getFirestore();
+const spanner = dataStoreFactory.getSpanner();
 
 async function handle(room, user, data) {
     await spanner.writePlayerWithMutations(user);
@@ -22,11 +24,10 @@ async function handle(room, user, data) {
 module.exports = class GameEventHandler {
     
     configureRoom(room, wserver, CLIENTS){
-        log('Configuring ROOM...');
-
+        //log('Configuring ROOM...');
+        log('configuring new room', null,'GameEventHandler:configureRoom','info');
         room.setupBroadcaseHandler(function (name, message){
-            log(`broadcasting to ${name}:${message}`);
-    
+            log('configuring new room', `broadcasting to ${name}:${message}`,'GameEventHandler:configureRoom','info');
             if (name == '*') {
                 firestore.updateWorldwideMessages(name, '*', message);
                 wserver.clients.forEach(ws => {
