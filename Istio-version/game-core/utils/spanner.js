@@ -10,13 +10,14 @@ Array.prototype.toString = function () {
 
 function default_read_formatter(row) {
     const result = row.toJSON({ wrapNumbers: true });
-    console.log(`default_read_formatter\r\n==============\r\n${JSON.stringify(result)}\r\n==============`);
-    console.log(User);
-    return new User(result['name'], result['playerClass'], parseInt(result['hp'].value),
+
+    var user = new User(result['name'], result['playerClass'], parseInt(result['hp'].value),
         parseInt(result['mp'].value),
         parseInt(result['playerLv'].value),
         null,
         result['id']);
+    log('read user data from datasource', user, 'CloudSpanner.js::default_read_formatter', 'info');
+    return user;
 }
 function default_write_formatter(row) {
 
@@ -36,24 +37,22 @@ module.exports = class CloudSpanner {
             this.instance = this.spanner.instance(config.INSTANCE_ID);
             this.database = this.instance.database(config.DATABASE_ID);
         } catch (err) {
-            log('==================');
-            log(err);
+            log('error constructing CloudSpanner', err, 'CloudSpanner.js::constructor', 'error');
         }
     }
 
-    static async EnsurePlayer(name) {
+    async EnsurePlayer(name) {
         const spanner = new CloudSpanner();
         var existing = await spanner.readPlayer(name);
-        console.log(existing);
-        console.log(`player alread exists:${existing != null && existing != 'undefined'}`);
+
+        log('Ensuring Player exists', name, 'MockCloudSpanner.js::EnsurePlayer', 'info');
 
         if (!existing) {
             console.log(`creating new player in Spanner...`);
             var user = new User(name, 'Warrior', 120, 120, 1, null);
             existing = await spanner.writePlayerWithMutations(user);
             //existing = await spanner.newPlayer(user);
-            console.log(`creating new player in Spanner...done`);
-            console.log(`============\r\n${existing.toString()}`);
+            log('New player, created database record', name, 'CloudSpanner.js::EnsurePlayer', 'info');
         }
 
         // var bootstrapper = new GameEventHandler();
@@ -79,9 +78,10 @@ module.exports = class CloudSpanner {
                 },
             };
         }
-        console.log(`SQL:${JSON.stringify(query)}`);
+        log('reading player data from database', query, 'CloudSpanner.js::readPlayer', 'info');
         const [rows] = await this.database.run(query);
-        console.log(`Query: ${rows.length} found.`);
+
+        log('reading player data from database', { hasPlayer: rows.length > 0, result: rows.length, name: name }, 'CloudSpanner.js::readPlayer', 'info');
         const results = [];
         rows.forEach(row => results.push(this.read_formatter(row)));
         console.log(results.length);
@@ -102,9 +102,10 @@ module.exports = class CloudSpanner {
                 return;
             }
             try {
-                console.log(`${player.name}|${player.id}|${player.playerClass}|${player.playerLv}|${player.hp}|${player.mp}`);
-                console.log(player);
-                const [rowCount] = await transaction.runUpdate({
+
+                // console.log(`${player.name}|${player.id}|${player.playerClass}|${player.playerLv}|${player.hp}|${player.mp}`);
+                // console.log(player);
+                var query = {
                     //sql: `INSERT into players(id, name, playerClass, playerLv, hp, mp) values(@id, @name, @playerClass, @playerLv, @hp, @mp)`,
                     sql: `update players set playerLv=@playerLv, hp=@hp, mp=@mp where name=@name and id=@id`,
                     params: {
@@ -115,11 +116,14 @@ module.exports = class CloudSpanner {
                         hp: player.hp,
                         mp: player.mp
                     }
-                });
+                };
+                const [rowCount] = await transaction.runUpdate(query);
+                log('updating player data', query, 'CloudSpanner.js::updatePlayer', 'info');
 
                 await transaction.commit();
             } catch (err) {
-                console.error('ERROR:', err);
+                log('updating player data', err, 'CloudSpanner.js::updatePlayer', 'error');
+
             } finally {
                 this.database.close();
             }
@@ -129,7 +133,13 @@ module.exports = class CloudSpanner {
     //  It is unlikely we need to play around with sesisons, but here I want to explore how it works.
     async writePlayerWithMutationsAndSession(players) {
         var sessions = await this.database.getSessions();
-        sessions.forEach(s => {log('====SESSION METADATA=====');console.log(s[0]); console.log(s[1]);});
+        sessions.forEach(s => {
+            //log('session', err,'CloudSpanner.js::writePlayerWithMutationsAndSession','error');
+            log('====SESSION METADATA=====');
+            console.log(s[0]);
+            console.log(s[1]);
+        }
+        );
         const transaction = session.transaction();
         var target = [];
         try {
@@ -141,7 +151,7 @@ module.exports = class CloudSpanner {
             target.forEach(t => transaction.upsert('players', t));
             await transaction.commit();
         } catch (e) {
-            log(`${JSON.stringify({ error: e, message: 'error while upsert by transaction' })}`);
+            log('error updating', e, 'CloudSpanner.js:writePlayerWithMutationsAndSession', 'error');
             transaction.end();
         }
         return players;
@@ -173,13 +183,12 @@ module.exports = class CloudSpanner {
     async newPlayer(player) {
         this.database.runTransaction(async (err, transaction) => {
             if (err) {
-                console.error('here' + err);
+                log('error newPlayer', {error:err, player:player}, 'CloudSpanner.js:newPlayer', 'error');
                 return;
             }
             try {
-                console.log(`${player.name}|${player.id}|${player.playerClass}|${player.playerLv}|${player.hp}|${player.mp}`);
-                console.log(player);
-                const [rowCount] = await transaction.runUpdate({
+                log('newPlayer', {error:err, player:player}, 'CloudSpanner.js:newPlayer', 'error');
+                var query = {
                     sql: `INSERT into players(id, name, playerClass, playerLv, hp, mp) values(@id, @name, @playerClass, @playerLv, @hp, @mp)`,
                     params: {
                         id: player.id,
@@ -189,12 +198,16 @@ module.exports = class CloudSpanner {
                         hp: player.hp,
                         mp: player.mp
                     }
-                });
+                };
+                const [rowCount] = await transaction.runUpdate();
 
                 await transaction.commit();
+                log('newPlayer', query, 'CloudSpanner.js:newPlayer', 'info');
+                
                 return player;
             } catch (err) {
-                console.error('ERROR:', err);
+                log('newPlayer', {error:err, player:player}, 'CloudSpanner.js:newPlayer', 'error');
+                
                 throw err;
             } finally {
                 this.database.close();

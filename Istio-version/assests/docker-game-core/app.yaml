@@ -1,0 +1,80 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: mud
+  annotations:
+    # cloud.google.com/neg: '{"ingress": true}'
+    # beta.cloud.google.com/backend-config: '{"ports": {"9999":"mud-backendconfig"}}'
+spec:
+  sessionAffinity: ClientIP 
+  selector:
+    app: mud
+  ports:
+  - protocol: TCP
+    port: 9999
+    name: mud
+    targetPort: 9999
+#   type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: mud
+spec:
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 1
+        #   maxUnavailable: 25%
+    selector:
+        matchLabels:
+            app: mud
+    replicas: 1
+    template:
+        metadata:
+            labels:
+                app: mud
+        spec:
+            # affinity:
+            #     nodeAffinity:
+            #       requiredDuringSchedulingIgnoredDuringExecution:
+            #         nodeSelectorTerms:
+            #         - matchExpressions:
+            #           - key: dedicated
+            #             operator: In
+            #             values: 
+            #             - mud
+            # tolerations:
+            #     - key: dedicated
+            #       operator: Equal
+            #       value: mud
+            #       effect: NoSchedule
+            containers:
+            -   name: mud
+                image: gcr.io/kalschi-istio/mud:gke-v22
+                imagePullPolicy: Always
+                ports:
+                    -   name: ws
+                        containerPort: 9999
+                livenessProbe:
+                    tcpSocket:
+                        port: 9999
+                    initialDelaySeconds: 30
+                readinessProbe:
+                    tcpSocket:
+                        port: 9999
+                    initialDelaySeconds: 30
+                resources:
+                    requests:
+                        cpu: 100m
+                        memory: 3.5G   
+                env:
+                    - name: PROJECT_ID
+                      value: kalschi-istio
+                    - name: LOCAL_MODE
+                      value: 'true'
+                    # - name: INSTANCE_ID
+                    #   value: game-spanner
+                    # - name: DATABASE_ID
+                    #   value: mud-sample
+                

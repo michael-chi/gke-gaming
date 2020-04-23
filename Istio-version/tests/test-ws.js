@@ -7,11 +7,12 @@ const readline = require('readline').createInterface({
 var standard_input = process.stdin;
 standard_input.setEncoding('utf-8');
 
-//var host = "34.102.250.216";
-var host = "127.0.0.1:9999";
+//var host = "ws://35.200.25.9/";
+var host = "ws://127.0.0.1:9999/";
+//var host = "127.0.0.1:9999";
 //var host = "game.michaelchi.net";
 
-socket = new WebSocket("ws://" + host + "/ws");
+socket = new WebSocket(host);
 socket.onmessage = function (event) {
     if(event)
         console.log(event.data);
