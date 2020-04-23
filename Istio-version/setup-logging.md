@@ -64,3 +64,6 @@ Logs-based Metrics
 
 設定完成後, 就可以在Monitoring中監控這個Metrics
 <img src='./assests/img/logs-based-metric-monitoring.png'/>
+
+可以跟CPU/Memory搭配了解Game Server的運作與上線玩家人數關係等
+<img src='./assests/img/logs-based-metric-dashboard.png'/>

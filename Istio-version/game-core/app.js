@@ -57,7 +57,7 @@ websocketServer.on('connection', async (ws, req) => {
                     var spanner = dataStoreFactory.getSpanner();
                     var user = await spanner.EnsurePlayer(name);
                     //var user = await Spanner.EnsurePlayer(name);
-                    log('user object created', { name: `${name}` }, 'app.js:websocketServer:onMessage(login)', 'info');
+                    log('player login', { player: `${name}` }, 'app.js:websocketServer:onMessage(login)', 'info');
 
                     //  Setup event handler so we get everything happened in the game world
                     bootstrapper.configurePlayer(user, room);
@@ -77,7 +77,7 @@ websocketServer.on('connection', async (ws, req) => {
                     room.leave(me);
                     me.quit();
 
-                    log('user quit', me, 'app.js:websocketServer:onMessage(quit)', 'info');
+                    log('player quit', {player:me.name}, 'app.js:websocketServer:onMessage(quit)', 'info');
 
                 }
                 else {

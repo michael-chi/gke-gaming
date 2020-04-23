@@ -16,17 +16,15 @@ module.exports = class SkillManager {
         var victim = null;
         var skill = null;
         if(!Skill){
-            log('invalid skill',{skill:skill, target:target, original:cmd}, 'SkillManager:do', 'info');
+            log('invalid skill',{player:this.player.name,skill:null, target:target, original:cmd}, 'SkillManager:do', 'info');
             return new InGameMessage(this.player.name,`What are you trying to do ?`);
         }
         if(Skill.IsSystem()){
-            log('system skill',{skill:skill, target:target, original:cmd}, 'SkillManager:do', 'info');
-            
             skill = new Skill(this._room);
-
+            log('system skill',{player:this.player.name,skill:skill.name, target:target, original:cmd}, 'SkillManager:do', 'info');
         }else{
-            log('player skill',{skill:skill, target:target, original:cmd}, 'SkillManager:do', 'info');
             skill = new Skill(this.player);
+            log('player skill',{player:this.player.name,skill:skill.name, target:target, original:cmd}, 'SkillManager:do', 'info');
         }
         if(skill.attack){
             
@@ -35,11 +33,10 @@ module.exports = class SkillManager {
             }
             if(victim){
                 var msg = skill.attack(victim);
-                log('attack',{skill:skill, target:target, original:cmd,message:msg}, 'SkillManager:do', 'info');
+                log('attack',{player:this.player.name,skill:skill.name, target:target, original:cmd,message:msg}, 'SkillManager:do', 'info');
                 return msg;
             }else{
-                log('attack',{skill:skill, target:target, original:cmd, message:'no target'}, 'SkillManager:do', 'info');
-                
+                log('attack',{player:this.player.name,skill:skill.name, target:target, original:cmd, message:'no target'}, 'SkillManager:do', 'info');
                 return new InGameMessage(this.player.name,`who are you looking at ?`);
             }
         }
@@ -48,6 +45,7 @@ module.exports = class SkillManager {
             if(target){
                 victim = this.findPlayerFunc(target);
             }
+            log('describe',{player:this.player.name,skill:skill.name, target:target, original:cmd, message:'no target'}, 'SkillManager:do', 'info');
             return skill.describe(this.player, victim);
         }
 
