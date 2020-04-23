@@ -36,4 +36,31 @@ module.exports = function log(msg, param, source, severity) {
 };
 ```
 
+這樣就完成了, 之後遊戲中透過`log()`紀錄的Log, 都會以Json的格式送到Stackdriver上, 並記錄在`jsonPayload`欄位
+在Stackdriver上就可以用類似以下的語法去查詢相關紀錄.
 
+例如我要查玩家連線的相關紀錄, 就可以以下面的查詢去取得
+```ini
+resource.type="k8s_container"
+resource.labels.cluster_name="gke2"
+resource.labels.namespace_name="default"
+resource.labels.container_name="mud"
+jsonPayload.message = "client connected"
+```
+
+Logs-based Metrics
+==================
+
+也可以將這樣的紀錄設定成為Logs-based Metrics作為監控之用
+<img src='./assests/img/loga-based-metric-create.png'/>
+
+按下Create Metric之後, 會跳到建立頁面, 確認所有條件符合之後, 在右邊Metric Editor填上Metric資訊
+<img src='./assests/img/logs-based-metric-edit-metric.png'/>
+
+
+如果這個Metric有其他重要資訊, 也可以透過Label的方式匯出
+
+<img src='./assests/img/logs-based-metric-create-label.png'/>
+
+設定完成後, 就可以在Monitoring中監控這個Metrics
+<img src='./assests/img/logs-based-metric-monitoring.png'/>
