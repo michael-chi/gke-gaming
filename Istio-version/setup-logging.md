@@ -8,6 +8,11 @@ Overview
 Steps
 =====
 
+Enable Sidecar Injecttion
+```shell
+kubectl label namespace default istio-injection=enabled
+```
+
 我們有幾個Client Library的[選擇](https://cloud.google.com/logging/docs/setup/nodejs#installing_the_plugin_2), 在這邊我使用Winston
 
 依照文件的步驟安裝node.js package, 並修改`logger.js`
@@ -63,7 +68,7 @@ Logs-based Metrics
 <img src='./assests/img/logs-based-metric-create-label.png'/>
 
 設定完成後, 就可以在Monitoring中監控這個Metrics
-<img src='./assests/img/logs-based-metric-monitoring.png'/>
+<img src=./assests/img/logs-based-metric-monitoring.png'/>
 
 可以跟CPU/Memory搭配了解Game Server的運作與上線玩家人數關係等
 <img src='./assests/img/logs-based-metric-dashboard.png'/>

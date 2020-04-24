@@ -24,3 +24,5 @@ Overview
 [部署Game Server](setup-game-server.md)
 
 [設定Logging](setup-logging.md)
+
+[設定Istio與Stackdriver整合](setup-istio-stackdriver.md)
