@@ -1,5 +1,5 @@
 const { Spanner } = require('@google-cloud/spanner');
-var User = require('../models/user');
+var PlayerProfile = require('../models/PlayerProfile');
 var GameConfiguration = require('../models/config');
 const log = require('./logger');
 Array.prototype.toString = function () {
@@ -217,8 +217,43 @@ module.exports = class CloudSpanner {
 
         return player;
     }
-    
+
     //====================
+    /*
+    CREATE TABLE UserProfile (
+        ShardId INT64 NOT NULL,
+        PlayerId STRING(36) NOT NULL,
+        Email STRING(64) NOT NULL,
+        Nickname STRING(64) NOT NULL,
+        LastLoginTime TIMESTAMP NOT NULL, 
+        IsOnLine BOOL NOT NULL
+    ) PRIMARY KEY (ShardId, PlayerId);
+    */
+    async readUserProfiles(playerId){
+        var query = null;
+        if(playerId)
+            query = {
+                sql: `SELECT ShardId, PlayerId, Email, Nickname, LastLoginTime, IsOnLine FROM UserProfile where PlayerId='${playerId}'`,
+            };
+        else
+            query = {
+                sql: `SELECT ShardId, PlayerId, Email, Nickname, LastLoginTime, IsOnLine FROM UserProfile where ShardId between 0 and 100`,
+            };
+
+        try {
+            const [rows] = await this.database.run(query);
+            var users = [];
+            rows.forEach(row => {
+                const json = row.toJSON();
+                users.push(new PlayerProfile(json.PlayerId, json.Email, json.Nickname, json.LastLoginTime, json.IsOnLine, json.ShardId));
+            });
+            return users;
+        } catch (err) {
+            log(`unable to read user profile`, {error:err,playerId:playerId}, "spanner.js:readUserProfiles","info");
+        } finally {
+            await this.database.close();
+        }  
+    }
     async newUserProfiles(players) {
         var target = [];
         if (players instanceof Array) {

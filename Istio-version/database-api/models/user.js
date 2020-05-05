@@ -1,9 +1,9 @@
 // const InGameMessage = require('../utils/inGameMessage');
 const { uuid } = require('uuidv4');
-// var Emitter = require('events').EventEmitter;
+var Emitter = require('events').EventEmitter;
 //const GameEventHandler = require('../utils/gameEventHandler');
 
-// var events = new Emitter();
+var events = new Emitter();
 var util = require('util');
 
 
@@ -114,6 +114,17 @@ class User {
     toString(){
         return `==================\r\n${this.name}\r\n--------------\r\nlevel ${this._lv} ${this.playerClass}\r\nHP:${this.hp}\tMP:${this.mp}\r\n==================`;
     }
+    toJson(){
+        return {
+                id:this._id ,
+                name:this._name,
+                playerClass:this._class ,
+                hp:this._hp ,
+                mp:this._mp ,
+                playerLv:this._lv ,
+                state:this._state 
+            }
+    }
 };
-// util.inherits(User, Emitter);
+util.inherits(User, Emitter);
 module.exports = User;

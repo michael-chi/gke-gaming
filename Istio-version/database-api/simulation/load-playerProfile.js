@@ -29,7 +29,7 @@ function randomString(length) {
 }
 
 function randomArbitrary(min, max) {
-    return Math.round(Math.random() * (max - min) + min);
+    return Math.round(Math.random() * (max - min)) + min;
 }
 
 function sleep(s) {

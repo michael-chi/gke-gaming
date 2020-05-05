@@ -1,4 +1,6 @@
 var random_name = require('node-random-name');
+const Spanner = require('../utils/spanner');
+const Firestore = require('../utils/firestore_datastore');
 function randomString(length) {
     var result = '';
     var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -10,35 +12,37 @@ function randomString(length) {
 }
 
 function randomArbitrary(min, max) {
-    return Math.random() * (max - min) + min;
+    return Math.round(Math.random() * (max - min)) + min;
 }
 
 function sleep(s) {
     return new Promise(resolve => setTimeout(resolve, s * 1000));
 }
 
-
+require('dotenv').config();
 
 const User = require('../models/user');
+
 const Classes = ['Warrior', 'Mage', 'Knight', 'Hunter'];
 const MaxHP = [210, 150, 220, 180];
 const MaxMP = [0, 300, 100, 0];
 
 async function go(){
-    for(var i = 0; i < 30000; i ++){
-        var playerClass = randomArbitrary(0,3);
-        var user = new User(random_name(),
-                        Classes[playerClass],
-                        MaxHP[playerClass],
-                        MaxMP[playerClass],
-                        10,
-                        null,
-                        randomString(randomArbitrary(5, 10))
-                    );
-        
-        await sleep(100);
-    }
+    var spanner = new Spanner();
+    var firestore = new Firestore();
 
+    var playerClass = 2;
+    console.log(`playerClass=${playerClass}`);
+    var user = new User('Michael Chi',
+                    Classes[playerClass],
+                    MaxHP[playerClass],
+                    MaxMP[playerClass],
+                    10,
+                    null,
+                    'kalschi'
+                );
+    console.log(user);
+    await firestore.upsertPlayer(user.toJson());
 }
 
 go();

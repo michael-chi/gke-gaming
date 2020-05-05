@@ -1,10 +1,7 @@
-const {Datastore} = require('@google-cloud/datastore');
-
+const { Datastore } = require('@google-cloud/datastore');
 const { uuid } = require('uuidv4');
 const log = require('./logger');
-admin.initializeApp({
-    credential: admin.credential.applicationDefault()
-});
+
 
 class FirestoreDatastore {
     constructor() {
@@ -12,7 +9,7 @@ class FirestoreDatastore {
     }
     updateGameWorldStastics(players) {
         log('updating game world stastics data', players, 'GameWorldRealtimeStatStorage:updateGameWorldStastics', 'info');
-        
+
         let docRef = this.db.collection('GameWorldStastics').doc(`${uuid()}-${Date.now().toPrecision()}`);
         let message = docRef.set({
             id: uuid(),
@@ -22,7 +19,7 @@ class FirestoreDatastore {
     }
     updatePlayerState(player) {
         log('updating game player data', player, 'GameWorldRealtimeStatStorage:updatePlayerState', 'info');
-        
+
         let docRef = this.db.collection('PlayerState').doc(`${player.name}`);
         let msg = docRef.set({
             id: uuid(),
@@ -35,8 +32,8 @@ class FirestoreDatastore {
         });
     }
     updateWorldwideMessages(issuer, target, message) {
-        log('updating game world message', {issuer:issuer, target:target, message:message}, 'MockGameWorldRealtimeStatStorage:updateWorldwideMessages', 'info');
-        
+        log('updating game world message', { issuer: issuer, target: target, message: message }, 'MockGameWorldRealtimeStatStorage:updateWorldwideMessages', 'info');
+
         //console.log(`>>>>>>>>${issuer}|${target}|${message}`)
         var issuerName = '', targetName = '';
         if (!(typeof issuer == 'string')) {
@@ -60,35 +57,78 @@ class FirestoreDatastore {
         });
     }
     //================
-    async upsertPlayer(player) {
-        const taskKey = this.datastore.key('Players');
-        const entity = {
-          key: taskKey,
-          data: player
-        //   data: [
-        //     {
-        //       name: 'created',
-        //       value: new Date().toJSON(),
-        //     },
-        //     {
-        //       name: 'description',
-        //       value: description,
-        //       excludeFromIndexes: true,
-        //     },
-        //     {
-        //       name: 'done',
-        //       value: false,
-        //     },
-        //   ],
-        };
-      
-        try {
-          await datastore.save(entity);
-          console.log(`Players ${taskKey.id} created successfully.`);
-        } catch (err) {
-          console.error('ERROR:', err);
+    KEY(){
+        return this.datastore.KEY;
+    }
+    async deeletePlayers() {
+        const query = this.datastore.createQuery('mud','players');
+        this.datastore.runQuery(query, (err, entities, info) => {
+            entities.forEach(entity => {
+                this.datastore.delete(entity[this.datastore.KEY]);
+            })
+        });
+    }
+    async getPlayer(playerId){
+        const key = this.datastore.key({
+            namespace: 'mud',
+            path: ['players', playerId]
+        });
+        var user = await datastore.get(key);
+
+        if(user){
+            return new User(user.nickname,
+                        Classes[playerClass],
+                        MaxHP[playerClass],
+                        MaxMP[playerClass],
+                        10,
+                        null,
+                        user.id
+                    );
+        }else{
+            return null;
         }
-      }
+    }
+    async getPlayers() {
+        const query = this.datastore.createQuery('mud','players');
+        return await this.datastore.runQuery(query);
+    }
+    async delete(key) {
+        const transaction = this.datastore.transaction();
+        transaction.run((err) => {
+            if (err) {
+                // Error handling omitted.
+            }
+
+            transaction.delete(key);
+
+            transaction.commit((err) => {
+                if (!err) {
+                    // Transaction committed successfully.
+                }
+            });
+        });
+
+    }
+    async upsertPlayer(player) {
+        const taskKey = this.datastore.key({
+            namespace: 'mud',
+            path: ['players', player.id]
+        });
+
+        const entity = {
+            key: taskKey,
+            data: player
+        };
+
+        try {
+            await this.datastore.save(entity);
+            log(`Player ${player.id} created successfully.`, null, 'firestore_datastore.js:upsertPlayer()', 'info');
+        } catch (err) {
+            log('ERROR:', { error: err }, 'firestore_datastore.js:upsertPlayer()', 'error');
+
+            throw err;
+        }
+    }
 }
 
 module.exports = FirestoreDatastore;
