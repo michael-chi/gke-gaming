@@ -26,3 +26,5 @@ Overview
 [設定Logging](setup-logging.md)
 
 [設定Istio與Stackdriver整合](setup-istio-stackdriver.md)
+
+[建立Spanner Instance](setup-spanner.md)
