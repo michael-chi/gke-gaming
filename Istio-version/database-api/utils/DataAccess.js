@@ -45,7 +45,10 @@ module.exports = class DataAccess {
         return getSpanner().newPlayerProfile(player);
     }
     async NewMatch(records){
-        return await getSpanner().newMatch(records);
+        var results = await getSpanner().newMatch(records);
+        console.log(`=============N==>${results}`);
+
+        return results;
     }
     //==============================
     //  Firestore
