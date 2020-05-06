@@ -81,20 +81,20 @@ app.post('/players/:id', async function(req,res){
 //  Match
 //  * Input: models/MatchRecord
 app.patch('/matches', async function(req,res){
-    log('post /players');
+    log('post /matches');
     await data.NewMatch(req.body);
 
     res.send({status:'ok'});
 });
 app.post('/matches', async function(req,res){
-    log('post /players');
+    log('post /matches');
     await data.NewMatch(req.body);
 
     res.send({status:'ok'});
 });
 
 app.get('/matches/:id', async function(req,res){
-    log('post /players');
+    log('post /matches');
     var result = await data.readMatch(req.body);
 
     res.send({status:'ok',data:result});

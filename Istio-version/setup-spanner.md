@@ -12,6 +12,8 @@
 
 [How to count mutation](https://github.com/googleapis/google-cloud-go/issues/1721)
 
+[Cloud Spanner Node.JS references](https://googleapis.dev/nodejs/spanner/latest/)
+
 ## Step-by-Step
 
 首先建立一個Spanner Instance, 由於我要把Spanner跟Game Server跨區部署, 因此我會建立一個名為`game-spanner`的Spanner Instance在asia-northeast區域
@@ -44,6 +46,7 @@ gcloud spanner instances create game-spanner \
 |  LastLoginTime | Timestamp| | Last login time |
 |  IsOnLine | BOOL | | Is the player currently online |
 
+其中, Spanner會自動地針對插入的資料做Split, 如果太多資料被寫入到同一個Split, 那麼這個Split就會變成讀寫的瓶頸. 因此在這裡我的每一筆記錄前都會有一個隨機的ShardId, 並且作為Primary Key的第一個欄位. 這樣應該可以保證不會產生Hotspot
 
 ```sql
 CREATE TABLE UserProfile (

@@ -45,7 +45,7 @@ module.exports = class DataAccess {
         return this._spanner.newPlayerProfile(player);
     }
     async NewMatch(records){
-        return this._spanner.newPlayer(records);
+        return this._spanner.newMatch(records);
     }
     //==============================
     //  Firestore
