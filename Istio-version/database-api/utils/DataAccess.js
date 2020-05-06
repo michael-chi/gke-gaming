@@ -28,7 +28,7 @@ function getSpanner() {
 module.exports = class DataAccess {
     constructor() {
         this._local_mode = config.LOCAL_MODE;
-        this._spanner = getSpanner();
+        //this._spanner = getSpanner();
         this._firestore = getFirestore(config.PROJECT_ID);
     }
     //==============================
@@ -36,16 +36,16 @@ module.exports = class DataAccess {
     //==============================
 
     async ReadPlayerProfile(id){
-        return await this._spanner.readUserProfiles(id);
+        return await getSpanner().readUserProfiles(id);
     }
     UpdatePlayerProfile(player){
-        return this._spanner.updatePlayer(player);
+        return getSpanner().updatePlayer(player);
     }
     async NewPlayerProfile(player){
-        return this._spanner.newPlayerProfile(player);
+        return getSpanner().newPlayerProfile(player);
     }
     async NewMatch(records){
-        return this._spanner.newMatch(records);
+        return await getSpanner().newMatch(records);
     }
     //==============================
     //  Firestore

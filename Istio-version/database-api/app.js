@@ -3,10 +3,16 @@
 require('dotenv').config();
 
 const log = require('./utils/logger');
-const serverPort = 9999,
-        express = require("express"),
-        app = express();
-const data = require('./utils/DataAccess');
+const serverPort = 9999
+const DataAccess = require('./utils/DataAccess');
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
+
+const data = new DataAccess();
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 //  Healthcheck
 app.get('/', function(req, res){
@@ -81,16 +87,18 @@ app.post('/players/:id', async function(req,res){
 //  Match
 //  * Input: models/MatchRecord
 app.patch('/matches', async function(req,res){
-    log('post /matches');
-    await data.NewMatch(req.body);
+    log('patch /matches');
+    console.log(req.body);
+    var result = await data.NewMatch(req.body);
 
-    res.send({status:'ok'});
+    res.send({status:'ok',data:result});
 });
 app.post('/matches', async function(req,res){
     log('post /matches');
-    await data.NewMatch(req.body);
+    console.log(req.body);
+    var result = await data.NewMatch(req.body);
 
-    res.send({status:'ok'});
+    res.send({status:'ok',data:result});
 });
 
 app.get('/matches/:id', async function(req,res){

@@ -2,7 +2,11 @@ const { Spanner } = require('@google-cloud/spanner');
 var PlayerProfile = require('../models/PlayerProfile');
 var GameConfiguration = require('../models/config');
 const MatchRecord = require('../models/matchRecord');
+const { uuid } = require('uuidv4');
 const log = require('./logger');
+
+const random = require('./random');
+
 Array.prototype.toString = function () {
     const temp = [];
     this.forEach(item => temp.push(`'${item}'`));
@@ -23,7 +27,6 @@ function default_read_formatter(row) {
 function default_write_formatter(row) {
 
 }
-
 
 module.exports = class CloudSpanner {
     constructor(read_formatter, write_formatter) {
@@ -108,7 +111,7 @@ module.exports = class CloudSpanner {
         try {
             this.database.runTransaction(async (err, transaction) => {
                 if (err) {
-                    log('error newMatch', { error: err, player: player }, 'CloudSpanner.js:newMatch', 'error');
+                    log('error newMatch', { error: err, match: records }, 'CloudSpanner.js:newMatch', 'error');
                     return;
                 }
                 try {
@@ -116,31 +119,31 @@ module.exports = class CloudSpanner {
 
                     target.forEach(async match => {
                         log('newMatch', { error: err, match: match }, 'CloudSpanner.js:newMatch', 'info');
-                        targets.push({
-                            ShardId: match.shardId,
-                            MatchId: match.matchId,
+                        var m = {
+                            ShardId: random.randomArbitrary(0, 100),
+                            MatchId: uuid(),
                             PlayerId: match.playerId,
                             TargetId: match.targetId,
                             MatchTime: match.matchTime
-                        });
+                        };
+                        targets.push(m);
                     });
                     await transaction.insert('PlayerMatchHistory', targets);
                     await transaction.commit();
 
-                    return players;
+                    return targets;
                 } catch (ex) {
                     log('newMatch exception', { error: ex }, 'CloudSpanner.js:newMatch', 'error');
 
                     throw ex;
-                } finally {
-                    this.database.close();
                 }
             });
         } catch (e) {
             console.log('==========================================');
             console.log(e);
+        } finally {
+            this.database.close();
         }
-        return players;
     }
     //====================
     /*

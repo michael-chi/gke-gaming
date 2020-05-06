@@ -51,7 +51,7 @@ class FirestoreDatastore {
     KEY() {
         return this.datastore.KEY;
     }
-    updateGameServerStastics(stastics) {
+    async updateGameServerStastics(stastics) {
         log('updating game server stastics data', stastics, 'GameWorldRealtimeStatStorage:updateGameWorldStastics', 'info');
         const taskKey = this.datastore.key({
             namespace: 'mud',
