@@ -44,13 +44,16 @@ async function go() {
         id + '@gmail.com',
         id,
         new Date(randomArbitrary(time_begin, time_end)),
-        false, 63);//randomArbitrary(0, 100));
+        false, 63);
     const spanner = new Spanner();
 
-    user.email = id + '@ibm.com';
-    console.log('done. updating to Spanner:' + user.toString());
     try{
-        await spanner.updateUserProfiles(user.toJson());
+        var u = spanner.newUserProfiles(user);
+        console.log(`done new : ${u}`);
+        user.email = id + '@ibm.com';
+        
+        u = await spanner.updateUserProfiles(user);
+        console.log('done. updating to Spanner:' + u.toString());
     }catch(e){
         console.log('==============');
         console.log(e);

@@ -186,88 +186,70 @@ module.exports = class CloudSpanner {
         }
     }
 
-    //====================
-    
-    
     async newUserProfiles(players) {
         var target = [];
         if (players instanceof Array) {
-            target = players;
+            players.forEach(
+                player =>{
+                    if(!player.shardId){
+                        player.shardId = random.randomArbitrary(0,100);
+                    }
+                    target.push(player.toJson()
+                    )
+                }
+            )
         } else {
-            target.push(players);
+            if(!players.shardId){
+                players.shardId = random.randomArbitrary(0,100);
+            }
+            target.push(players.toJson());
         }
         try {
-            this.database.runTransaction(async (err, transaction) => {
-                if (err) {
-                    log('error newUserProfiles', { error: err, player: player }, 'CloudSpanner.js:newUserProfiles', 'error');
-                    return;
-                }
-                try {
-                    var targets = [];
-                    target.forEach(async player => {
-                        log('newUserProfiles', { error: err, player: player }, 'CloudSpanner.js:newUserProfiles', 'info');
-                        targets.push({
-                            ShardId: player.shardId,
-                            PlayerId: player.id,
-                            Email: player.email,
-                            Nickname: player.nickname,
-                            LastLoginTime: player.lastLoginTime,
-                            IsOnLine: player.online
-                        });
-                    });
-                    await transaction.insert('UserProfile', targets);
-                    await transaction.commit();
+            await this._runMutation(target,
+                async (item, tx) => {
+                    await tx.insert('UserProfile', item);
+                });
+            return target;
 
-                    return players;
-                } catch (ex) {
-                    log('newUserProfiles exception', { error: ex }, 'CloudSpanner.js:newUserProfiles', 'error');
-
-                    throw ex;
-                } finally {
-                    this.database.close();
-                }
-            });
         } catch (e) {
             console.log('==========================================');
             console.log(e);
         }
         return players;
     }
-
-
+    
     async updateUserProfiles(profile) {
         var target = [];
         if (profile instanceof Array) {
-            target = profile;
+            profile.forEach(
+                player =>{
+                    if(!player.shardId){
+                        player.shardId = random.randomArbitrary(0,100);
+                    }
+                    target.push(player.toJson()
+                    )
+                }
+            )
         } else {
-            target.push(profile);
+            if(!profile.shardId){
+                profile.shardId = random.randomArbitrary(0,100);
+            }
+            target.push(profile.toJson());
         }
         try {
-            this.database.runTransaction(async (err, transaction) => {
-                if (err) {
-                    log('error updateUserProfiles', { error: err, profile: profile }, 'CloudSpanner.js:updateUserProfiles', 'error');
-                    //return;
-                }
-                try {
-                    transaction.update('UserProfile', profile);
-
-                    //await transaction.insert('UserProfile', targets);
-                    await transaction.commit();
-
-                    return profile;
-                } catch (ex) {
-                    log('newUserProfiles exception', { error: ex }, 'CloudSpanner.js:newUserProfiles', 'error');
-
-                    throw ex;
-                } finally {
-                    this.database.close();
-                }
-            });
+            await this._runMutation(target,
+                async (match, tx) => {
+                    await tx.update('UserProfile', match);
+                });
+            return profile;
+            
         } catch (e) {
             console.log('==========================================');
             console.log(e);
         }
         return profile;
     }
+    //====================
+
 }
 
