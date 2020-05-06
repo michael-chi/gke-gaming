@@ -7,16 +7,7 @@ class FirestoreDatastore {
     constructor() {
         this.datastore = new Datastore();
     }
-    updateGameWorldStastics(players) {
-        log('updating game world stastics data', players, 'GameWorldRealtimeStatStorage:updateGameWorldStastics', 'info');
 
-        let docRef = this.db.collection('GameWorldStastics').doc(`${uuid()}-${Date.now().toPrecision()}`);
-        let message = docRef.set({
-            id: uuid(),
-            time: Date.now(),
-            players: players
-        });
-    }
     updatePlayerState(player) {
         log('updating game player data', player, 'GameWorldRealtimeStatStorage:updatePlayerState', 'info');
 
@@ -57,39 +48,93 @@ class FirestoreDatastore {
         });
     }
     //================
-    KEY(){
+    KEY() {
         return this.datastore.KEY;
     }
-    async deeletePlayers() {
-        const query = this.datastore.createQuery('mud','players');
+    updateGameServerStastics(stastics) {
+        log('updating game server stastics data', stastics, 'GameWorldRealtimeStatStorage:updateGameWorldStastics', 'info');
+        const taskKey = this.datastore.key({
+            namespace: 'mud',
+            path: ['gameServer', stastics.id]
+        });
+
+        const entity = {
+            key: taskKey,
+            data: stastics
+        };
+
+        try {
+            await this.datastore.save(entity);
+            log(`game server stastics ${stastics.id} updated successfully.`, null, 'firestore_datastore.js:updateGameServerStastics()', 'info');
+        } catch (err) {
+            log('ERROR:', { error: err }, 'firestore_datastore.js:updateGameServerStastics()', 'error');
+
+            throw err;
+        }
+        // let docRef = this.db.collection('GameWorldStastics').doc(`${uuid()}-${Date.now().toPrecision()}`);
+        // let message = docRef.set({
+        //     id: uuid(),
+        //     time: Date.now(),
+        //     players: players
+        // });
+    }
+    async getGameServerStastics(id) {
+        const key = this.datastore.key({
+            namespace: 'mud',
+            path: ['gameServer', id]
+        });
+        var game = await datastore.get(key);
+
+        if (game) {
+            return game.toJSON();
+        } else {
+            return null;
+        }
+    }
+    async getGameServerStastics() {
+        const query = this.datastore.createQuery('mud', 'gameServer');
+        var games = await this.datastore.runQuery(query);
+        if (games) 
+        {
+            var results = [];
+            games.forEach(game => {
+                results.push(game.toJSON());
+            });
+            return results;
+        } else {
+            return null;
+        }
+    }
+    async deletePlayers() {
+        const query = this.datastore.createQuery('mud', 'players');
         this.datastore.runQuery(query, (err, entities, info) => {
             entities.forEach(entity => {
                 this.datastore.delete(entity[this.datastore.KEY]);
             })
         });
     }
-    async getPlayer(playerId){
+    async getPlayer(playerId) {
         const key = this.datastore.key({
             namespace: 'mud',
             path: ['players', playerId]
         });
         var user = await datastore.get(key);
 
-        if(user){
+        if (user) {
             return new User(user.nickname,
-                        Classes[playerClass],
-                        MaxHP[playerClass],
-                        MaxMP[playerClass],
-                        10,
-                        null,
-                        user.id
-                    );
-        }else{
+                Classes[playerClass],
+                MaxHP[playerClass],
+                MaxMP[playerClass],
+                10,
+                null,
+                user.id
+            );
+        } else {
             return null;
         }
     }
     async getPlayers() {
-        const query = this.datastore.createQuery('mud','players');
+        const query = this.datastore.createQuery('mud', 'players');
         return await this.datastore.runQuery(query);
     }
     async delete(key) {

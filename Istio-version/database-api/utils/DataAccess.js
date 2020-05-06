@@ -8,7 +8,7 @@ function getFirestore(projectId) {
         const mock = require('./mock/firestore_native');
         return new mock();
     } else {
-        const Firestore = require('./firestore_native');
+        const Firestore = require('./firestore_datastore');
         return new Firestore(projectId);
     }
 }
@@ -34,34 +34,46 @@ module.exports = class DataAccess {
     //==============================
     //  Spanner
     //==============================
-    async EnsurePlayer(name){
-        return await this._spanner.EnsurePlayer(name);
+
+    async ReadPlayerProfile(id){
+        return await this._spanner.readUserProfiles(id);
     }
-    async readPlayer(name){
-        return await this._spanner.readPlayer(name);
-    }
-    updatePlayer(player){
+    UpdatePlayerProfile(player){
         return this._spanner.updatePlayer(player);
     }
-    async writePlayerWithMutationsAndSession(players){
-        return this._spanner.writePlayerWithMutationsAndSession(players);
+    async NewPlayerProfile(player){
+        return this._spanner.newPlayerProfile(player);
     }
-    async async writePlayerWithMutations(players){
-        return this._spanner.writePlayerWithMutations(players);
+    async NewMatch(records){
+        return this._spanner.newPlayer(records);
     }
-    async newPlayer(player){
-        return this._spanner.newPlayer(player);
-    }
-
     //==============================
     //  Firestore
     //==============================
-    updateGameWorldStastics(players) {
-        return this._firestore.updateGameWorldStastics(players);
+    async EnsurePlayer(playerId){
+        const player = await this._firestore.getPlayer(playerId);
+        if(player){
+            return player.toJson();
+        }else{
+            return null;
+        }
     }
-    updatePlayerState(player) {
-        return this._firestore.updatePlayerState(player);
+    async UpdatePlayer(player){
+        //updatePlayerState
+        await this._firestore.upsertPlayer(player);
     }
+
+    UpdateGameServerStastics(info) {
+        return this._firestore.updateGameServerStastics(info);
+    }
+    GetGameServerStastics(id){
+        if(id){
+            return this._firestore.getGameServerStastics(id);
+        }else{
+            return this._firestore.getGameServerStastics();
+        }
+    }
+    
     updateWorldwideMessages(issuer, target, message) {
         return this._firestore.updateWorldwideMessages(issuer, target, message);
     }

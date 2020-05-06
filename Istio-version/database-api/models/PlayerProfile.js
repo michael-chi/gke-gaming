@@ -61,5 +61,16 @@ class PlayerProfile {
     toString(){
         return `==================\r\n[${this.shardId}]${this.id}\r\n--------------\r\nemail ${this.email} ${this.nickname}\r\nlastLoginTime:${this.lastLoginTime}\nonline:${this.online}\r\n==================`;
     }
+
+    toJson(){
+        return {
+            Playerid: this._id, 
+            Email : this._email,
+            Nickname: this._nickname,
+            LastLoginTime: this._lastLoginTime,
+            IsOnLine: this._online,
+            ShardId: this._shardId
+        };
+    }
 };
 module.exports = PlayerProfile;

@@ -8,50 +8,58 @@ CREATE TABLE PlayerMatchHistory (
 ) PRIMARY KEY (ShardId, MatchId);
 */
 const { uuid } = require('uuidv4');
-class matchRecord {
-    constructor(id, targetId, matchId, shardId, matchTime) {
-        this.id = id ? id : uuid();
-        this.targetId = targetId;
-        this.matchId = matchId;
-        this.shardId = shardId;
-        this.matchTime = matchTime;
+class MatchRecord {
+    constructor(playerId, targetId, matchId, shardId, matchTime) {
+        this._playerId = playerId;
+        this._targetId = targetId;
+        this._matchId = matchId ? matchId : uuid();
+        this._shardId = shardId;
+        this._matchTime = matchTime;
     }
-    get id(){
-        return this.id;
+    get playerId(){
+        return this._playerId;
     }
-    set id(value){
-        this.id = value;
+    set playerId(value){
+        this._playerId = value;
     }
     get matchTime(){
-        return this.matchTime;
+        return this._matchTime;
     }
     set matchTime(value){
-        this.matchTime = value;
+        this._matchTime = value;
     }
     get targetId (){
-        if (this.targetId) {
-            return this.targetId;
+        if (this._targetId) {
+            return this._targetId;
         }
         else return '';
     }
     set targetId(value){
-        this.targetId = value;
+        this._targetId = value;
     }
     get matchId(){
-        return this.matchId;
+        return this._matchId;
     }
     set matchId(value){
-        this.matchId = value;
+        this._matchId = value;
     }
     get shardId (){
-        return this.shardId;
+        return this._shardId;
     }
     set shardId(value){
-        this.shardId = value;
+        this._shardId = value;
     }
-    
+    toJson(){
+        return {
+            playerId:this._playerId,
+            targetId:this._targetId,
+            matchId:this._matchId,
+            matchTime:this._matchTime,
+            shardId:this._shardId          
+        }
+    }
     toString(){
-        return `==================\r\n[${this.shardId}]${this.matchId}\r\n--------------\r\nPlayer ${this.id} matches against ${this.targetId}\r\nmatchTime:${this.matchTime}\r\n==================`;
+        return `==================\r\n[${this._shardId}]${this._matchId}\r\n--------------\r\nPlayer ${this._playerId} matches against ${this._targetId}\r\nmatchTime:${this._matchTime}\r\n==================`;
     }
 };
-module.exports = matchRecord;
+module.exports = MatchRecord;

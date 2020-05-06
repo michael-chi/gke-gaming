@@ -1,6 +1,7 @@
 const { Spanner } = require('@google-cloud/spanner');
 var PlayerProfile = require('../models/PlayerProfile');
 var GameConfiguration = require('../models/config');
+const MatchRecord = require('../models/matchRecord');
 const log = require('./logger');
 Array.prototype.toString = function () {
     const temp = [];
@@ -41,183 +42,106 @@ module.exports = class CloudSpanner {
             log('error constructing CloudSpanner', err, 'CloudSpanner.js::constructor', 'error');
         }
     }
-
-    async EnsurePlayer(name) {
-        const spanner = new CloudSpanner();
-        var existing = await spanner.readPlayer(name);
-
-        log('Ensuring Player exists', name, 'MockCloudSpanner.js::EnsurePlayer', 'info');
-
-        if (!existing) {
-            console.log(`creating new player in Spanner...`);
-            var user = new User(name, 'Warrior', 120, 120, 1, null);
-            existing = await spanner.writePlayerWithMutations(user);
-            //existing = await spanner.newPlayer(user);
-            log('New player, created database record', name, 'CloudSpanner.js::EnsurePlayer', 'info');
-        }
-
-        // var bootstrapper = new GameEventHandler();
-
-        // bootstrapper.configure(existing, async function (data) {
-        //     var spanner = newSpannerClient();
-        //     //await spanner.updatePlayer(existing);
-        //     await spanner.writePlayerWithMutations(existing);
-        // });
-        return existing;
-    }
-    async readPlayer(name) {
+    async _querySpanner(query, callback) {
         var query = null;
-        if (name instanceof Array) {
-            query = {
-                sql: `select * from players where name in (${name.toString()})`
-            };
-        } else {
-            query = {
-                sql: `select * from players where name=@name`,
-                params: {
-                    name: name,
-                },
-            };
-        }
-        log('reading player data from database', query, 'CloudSpanner.js::readPlayer', 'info');
-        const [rows] = await this.database.run(query);
 
-        log('reading player data from database', { hasPlayer: rows.length > 0, result: rows.length, name: name }, 'CloudSpanner.js::readPlayer', 'info');
-        const results = [];
-        rows.forEach(row => results.push(this.read_formatter(row)));
-        console.log(results.length);
-        if (results.length == 0) {
-            return null;
-        }
-        else if (results.length == 1) {
-            return results[0];
-        }
-        else
-            return results;
-    }
-
-    updatePlayer(player) {
-        this.database.runTransaction(async (err, transaction) => {
-            if (err) {
-                console.error('here' + err);
-                return;
-            }
-            try {
-
-                // console.log(`${player.name}|${player.id}|${player.playerClass}|${player.playerLv}|${player.hp}|${player.mp}`);
-                // console.log(player);
-                var query = {
-                    //sql: `INSERT into players(id, name, playerClass, playerLv, hp, mp) values(@id, @name, @playerClass, @playerLv, @hp, @mp)`,
-                    sql: `update players set playerLv=@playerLv, hp=@hp, mp=@mp where name=@name and id=@id`,
-                    params: {
-                        id: player.id,
-                        name: player.name,
-                        playerClass: player.playerClass,
-                        playerLv: player.playerLv,
-                        hp: player.hp,
-                        mp: player.mp
-                    }
-                };
-                const [rowCount] = await transaction.runUpdate(query);
-                log('updating player data', query, 'CloudSpanner.js::updatePlayer', 'info');
-
-                await transaction.commit();
-            } catch (err) {
-                log('updating player data', err, 'CloudSpanner.js::updatePlayer', 'error');
-
-            } finally {
-                this.database.close();
-            }
-        });
-    }
-    //  https://googleapis.dev/nodejs/spanner/latest/Database.html#getSessions
-    //  It is unlikely we need to play around with sesisons, but here I want to explore how it works.
-    async writePlayerWithMutationsAndSession(players) {
-        var sessions = await this.database.getSessions();
-        sessions.forEach(s => {
-            //log('session', err,'CloudSpanner.js::writePlayerWithMutationsAndSession','error');
-            log('====SESSION METADATA=====');
-            console.log(s[0]);
-            console.log(s[1]);
-        }
-        );
-        const transaction = session.transaction();
-        var target = [];
         try {
-            if (players instanceof Array) {
-                target = players;
-            } else {
-                target.push(players);
-            }
-            target.forEach(t => transaction.upsert('players', t));
-            await transaction.commit();
-        } catch (e) {
-            log('error updating', e, 'CloudSpanner.js:writePlayerWithMutationsAndSession', 'error');
-            transaction.end();
+            const [rows] = await await this.database.run(query);
+            var results = [];
+            results.forEach(
+                callback(row, results)
+            );
+            return results;
+        } catch (err) {
+            log(`unable to read user profile`, { error: err, MatchId: id }, "spanner.js:readMatch", "info");
+        } finally {
+            await this.database.close();
         }
-        return players;
     }
-    async writePlayerWithMutations(players) {
-        //return await this.writePlayerWithMutationsAndSession(players);
-        var playerTable = this.database.table('players');
+    //====================
+    /*
+    CREATE TABLE PlayerMatchHistory (
+        ShardId INT64 NOT NULL,
+        MatchId STRING(36) NOT NULL,
+        PlayerId STRING(10) NOT NULL,
+        TargetId STRING(64) NOT NULL,
+        MatchTime TIMESTAMP NOT NULL,
+    ) PRIMARY KEY (ShardId, MatchId);
+    */
+
+    async readMatch(id) {
+        var query = null;
+        if (id)
+            query = {
+                sql: `SELECT ShardId, MatchId, PlayerId, TargetId, MatchTime FROM PlayerMatchHistory where MatchId='${id}'`,
+            };
+        else
+            query = {
+                sql: `SELECT ShardId, MatchId, PlayerId, TargetId, MatchTime FROM PlayerMatchHistory where ShardId between 0 and 100`,
+            };
+        var results = await this._querySpanner(query, (row, items) => {
+            const json = row.toJSON();
+            items.push(new MatchRecord(json.PlayerId, json.TargetId, json.MatchId, json.ShardId, json.MatchTime).toJson());
+        });
+        return results;
+        // try {
+        //     const [rows] = await this._querySpanner(query);//await this.database.run(query);
+        //     var results = [];
+        //     results.forEach(row => {
+        //         const json = row.toJSON();
+        //         users.push(new MatchRecord(json.PlayerId, json.TargetId, json.MatchId, json.ShardId, json.MatchTime).toJson());
+        //     });
+        //     return results;
+        // } catch (err) {
+        //     log(`unable to read user profile`, { error: err, MatchId: id }, "spanner.js:readMatch", "info");
+        // } finally {
+        //     await this.database.close();
+        // }
+    }
+    async newMatch(records) {
         var target = [];
-        if (players instanceof Array) {
-            target = players;
+        if (records instanceof Array) {
+            target = records;
         } else {
-            target.push(players);
+            target.push(records);
         }
-        target.forEach(async (player) => {
-            await playerTable.upsert([
-                {
-                    'id': player.id,
-                    'name': player.name,
-                    'playerClass': player.playerClass,
-                    'playerLv': player.playerLv,
-                    'hp': player.hp,
-                    'mp': player.mp
+        try {
+            this.database.runTransaction(async (err, transaction) => {
+                if (err) {
+                    log('error newMatch', { error: err, player: player }, 'CloudSpanner.js:newMatch', 'error');
+                    return;
                 }
-            ]);
-        });
+                try {
+                    var targets = [];
+
+                    target.forEach(async match => {
+                        log('newMatch', { error: err, match: match }, 'CloudSpanner.js:newMatch', 'info');
+                        targets.push({
+                            ShardId: match.shardId,
+                            MatchId: match.matchId,
+                            PlayerId: match.playerId,
+                            TargetId: match.targetId,
+                            MatchTime: match.matchTime
+                        });
+                    });
+                    await transaction.insert('PlayerMatchHistory', targets);
+                    await transaction.commit();
+
+                    return players;
+                } catch (ex) {
+                    log('newMatch exception', { error: ex }, 'CloudSpanner.js:newMatch', 'error');
+
+                    throw ex;
+                } finally {
+                    this.database.close();
+                }
+            });
+        } catch (e) {
+            console.log('==========================================');
+            console.log(e);
+        }
         return players;
     }
-
-    async newPlayer(player) {
-        this.database.runTransaction(async (err, transaction) => {
-            if (err) {
-                log('error newPlayer', { error: err, player: player }, 'CloudSpanner.js:newPlayer', 'error');
-                return;
-            }
-            try {
-                log('newPlayer', { error: err, player: player }, 'CloudSpanner.js:newPlayer', 'error');
-                var query = {
-                    sql: `INSERT into players(id, name, playerClass, playerLv, hp, mp) values(@id, @name, @playerClass, @playerLv, @hp, @mp)`,
-                    params: {
-                        id: player.id,
-                        name: player.name,
-                        playerClass: player.playerClass,
-                        playerLv: player.playerLv,
-                        hp: player.hp,
-                        mp: player.mp
-                    }
-                };
-                const [rowCount] = await transaction.runUpdate();
-
-                await transaction.commit();
-                log('newPlayer', query, 'CloudSpanner.js:newPlayer', 'info');
-
-                return player;
-            } catch (err) {
-                log('newPlayer', { error: err, player: player }, 'CloudSpanner.js:newPlayer', 'error');
-
-                throw err;
-            } finally {
-                this.database.close();
-            }
-        });
-
-        return player;
-    }
-
     //====================
     /*
     CREATE TABLE UserProfile (
@@ -229,9 +153,9 @@ module.exports = class CloudSpanner {
         IsOnLine BOOL NOT NULL
     ) PRIMARY KEY (ShardId, PlayerId);
     */
-    async readUserProfiles(playerId){
+    async readUserProfiles(playerId) {
         var query = null;
-        if(playerId)
+        if (playerId)
             query = {
                 sql: `SELECT ShardId, PlayerId, Email, Nickname, LastLoginTime, IsOnLine FROM UserProfile where PlayerId='${playerId}'`,
             };
@@ -245,14 +169,14 @@ module.exports = class CloudSpanner {
             var users = [];
             rows.forEach(row => {
                 const json = row.toJSON();
-                users.push(new PlayerProfile(json.PlayerId, json.Email, json.Nickname, json.LastLoginTime, json.IsOnLine, json.ShardId));
+                users.push(new PlayerProfile(json.PlayerId, json.Email, json.Nickname, json.LastLoginTime, json.IsOnLine, json.ShardId).toJSON());
             });
             return users;
         } catch (err) {
-            log(`unable to read user profile`, {error:err,playerId:playerId}, "spanner.js:readUserProfiles","info");
+            log(`unable to read user profile`, { error: err, playerId: playerId }, "spanner.js:readUserProfiles", "info");
         } finally {
             await this.database.close();
-        }  
+        }
     }
     async newUserProfiles(players) {
         var target = [];
@@ -261,91 +185,78 @@ module.exports = class CloudSpanner {
         } else {
             target.push(players);
         }
-        try{
-        this.database.runTransaction(async (err, transaction) => {
-            if (err) {
-                log('error newUserProfiles', { error: err, player: player }, 'CloudSpanner.js:newUserProfiles', 'error');
-                return;
-            }
-            try {
-                var targets = [];
-                target.forEach(async player => {
-                    log('newUserProfiles', { error: err, player: player }, 'CloudSpanner.js:newUserProfiles', 'info');
-                    targets.push({
-                        ShardId :player.shardId, 
-                        PlayerId : player.id,
-                        Email: player.email, 
-                        Nickname: player.nickname, 
-                        LastLoginTime: player.lastLoginTime, 
-                        IsOnLine: player.online
+        try {
+            this.database.runTransaction(async (err, transaction) => {
+                if (err) {
+                    log('error newUserProfiles', { error: err, player: player }, 'CloudSpanner.js:newUserProfiles', 'error');
+                    return;
+                }
+                try {
+                    var targets = [];
+                    target.forEach(async player => {
+                        log('newUserProfiles', { error: err, player: player }, 'CloudSpanner.js:newUserProfiles', 'info');
+                        targets.push({
+                            ShardId: player.shardId,
+                            PlayerId: player.id,
+                            Email: player.email,
+                            Nickname: player.nickname,
+                            LastLoginTime: player.lastLoginTime,
+                            IsOnLine: player.online
+                        });
                     });
-                });
-                await transaction.insert('UserProfile', targets);
-                await transaction.commit();
+                    await transaction.insert('UserProfile', targets);
+                    await transaction.commit();
 
-                return players;
-            } catch (ex) {
-                log('newUserProfiles exception', { error: ex}, 'CloudSpanner.js:newUserProfiles', 'error');
+                    return players;
+                } catch (ex) {
+                    log('newUserProfiles exception', { error: ex }, 'CloudSpanner.js:newUserProfiles', 'error');
 
-                throw ex;
-            } finally {
-                this.database.close();
-            }
-        });
-        }catch(e){
+                    throw ex;
+                } finally {
+                    this.database.close();
+                }
+            });
+        } catch (e) {
             console.log('==========================================');
             console.log(e);
         }
         return players;
     }
 
-    /*
-    CREATE TABLE UserProfile (
-        ShardId INT64 NOT NULL,
-        PlayerId STRING(10) NOT NULL,
-        Email STRING(64) NOT NULL,
-        Nickname STRING(64) NOT NULL,
-        LastLoginTime TIMESTAMP NOT NULL, 
-        IsOnLine BOOL NOT NULL
-    ) PRIMARY KEY (ShardId, PlayerId);
-    */
 
-    async newUserProfile(player) {
+    async updateUserProfiles(profile) {
+        var target = [];
+        if (profile instanceof Array) {
+            target = profile;
+        } else {
+            target.push(profile);
+        }
         try {
             this.database.runTransaction(async (err, transaction) => {
                 if (err) {
-                    log('error newUserProfile', { error: err, player: player }, 'CloudSpanner.js:newUserProfile', 'error');
-                    return;
+                    log('error updateUserProfiles', { error: err, profile: profile }, 'CloudSpanner.js:updateUserProfiles', 'error');
+                    //return;
                 }
+                try {
+                    transaction.update('UserProfile', profile);
 
-                log('newUserProfile', { error: err, player: player }, 'CloudSpanner.js:newUserProfile', 'error');
-                var query = {
-                    sql: `INSERT into UserProfile(ShardId, PlayerId, Email, Nickname, LastLoginTime, IsOnLine) values(@shardId, @id, @email, @nickname, @lastLoginTime, @online)`,
-                    params: {
-                        id: player.id,
-                        email: player.email,
-                        nickname: player.nickname,
-                        lastLoginTime: player.lastLoginTime,
-                        online: player.online,
-                        shardId: player.shardId
-                    }
-                };
-                const [rowCount] = await transaction.runUpdate(query);
+                    //await transaction.insert('UserProfile', targets);
+                    await transaction.commit();
 
-                await transaction.commit();
-                log('newPlayer', query, 'CloudSpanner.js:newPlayer', 'info');
+                    return profile;
+                } catch (ex) {
+                    log('newUserProfiles exception', { error: ex }, 'CloudSpanner.js:newUserProfiles', 'error');
 
-                return player;
-
+                    throw ex;
+                } finally {
+                    this.database.close();
+                }
             });
-        } catch (err) {
-            log('newPlayer', { error: err, player: player }, 'CloudSpanner.js:newPlayer', 'error');
-
-            //throw err;
-        } finally {
-            this.database.close();
+        } catch (e) {
+            console.log('==========================================');
+            console.log(e);
         }
-        return player;
+        return profile;
     }
 }
 
