@@ -2,13 +2,13 @@
 require('dotenv').config();
 
 //const Spanner = require('./utils/spanner');
-const DataStoreFactory = require('./utils/dataStoreFactory');
 const Room = require('./models/room');
 const GameEventHandler = require('./utils/gameEventHandler');
 const CommandManager = require('./skills/factory');
 const log = require('./utils/logger');
+const DataAPI = require('./utils/DataAccess');
 
-const dataStoreFactory = new DataStoreFactory();
+const dataApi = new DataAPI();
 const serverPort = 9999,
     http = require("http"),
     express = require("express"),
@@ -54,9 +54,7 @@ websocketServer.on('connection', async (ws, req) => {
                 //  But not now...
                 if (message.startsWith('login ')) {
                     var name = message.split(' ')[1];
-                    var spanner = dataStoreFactory.getSpanner();
-                    var user = await spanner.EnsurePlayer(name);
-                    //var user = await Spanner.EnsurePlayer(name);
+                    var user = await dataApi.EnsurePlayer(name);
                     log('player login', { player: `${name}` }, 'app.js:websocketServer:onMessage(login)', 'info');
 
                     //  Setup event handler so we get everything happened in the game world
