@@ -41,7 +41,7 @@ module.exports = class CloudSpanner {
     }
     getSpannerDatabase() {
         try {
-            const config = GameConfiguration.Spanner();
+            const config = GameConfiguration.DataAccess()();
             var spanner = new Spanner({
                 projectId: config.PROJECT_ID,
             });

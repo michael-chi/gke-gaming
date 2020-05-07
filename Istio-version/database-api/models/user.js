@@ -26,24 +26,24 @@ class User {
         this.emit('new', this);
     }
     get state() {return this._state;}
-    dying(){
-        this._state = STATE_DYING;
-        this._hp = 0;
+    // dying(){
+    //     this._state = STATE_DYING;
+    //     this._hp = 0;
 
-        this.emit('dying', this);
-    }
-    resurrection(){
-        this._state = STATE_NORMAL;
-        this._hp = 200;
+    //     this.emit('dying', this);
+    // }
+    // resurrection(){
+    //     this._state = STATE_NORMAL;
+    //     this._hp = 200;
 
-        this.emit('resurrection', this);
-    }
-    skills(){
-        return this._skills;
-    }
-    skills(value){
-        this._skills = value;
-    }
+    //     this.emit('resurrection', this);
+    // }
+    // skills(){
+    //     return this._skills;
+    // }
+    // skills(value){
+    //     this._skills = value;
+    // }
     // login(){
     //     this.emit('login',this);
     //     //  everytime the player logs in, ensure he is able to fight again...for demo purpose

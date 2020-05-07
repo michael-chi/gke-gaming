@@ -112,7 +112,7 @@ class User {
         this._mp = value;
     }
     toString(){
-        return `==================\r\n${this.name}\r\n--------------\r\nlevel ${this._lv} ${this.playerClass}\r\nHP:${this.hp}\tMP:${this.mp}\r\n==================`;
+        return `==================\r\n${this.name}\r\n--------------\r\nlevel ${this.playerLv} ${this.playerClass}\r\nHP:${this.hp}\tMP:${this.mp}\r\n==================`;
     }
 };
 util.inherits(User, Emitter);

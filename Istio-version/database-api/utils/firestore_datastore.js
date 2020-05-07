@@ -1,7 +1,7 @@
 const { Datastore } = require('@google-cloud/datastore');
 const { uuid } = require('uuidv4');
 const log = require('./logger');
-
+const User = require('../models/user');
 
 class FirestoreDatastore {
     constructor() {
@@ -118,17 +118,20 @@ class FirestoreDatastore {
             namespace: 'mud',
             path: ['players', playerId]
         });
-        var user = await datastore.get(key);
+        var user = await this.datastore.get(key);
 
         if (user) {
-            return new User(user.nickname,
-                Classes[playerClass],
-                MaxHP[playerClass],
-                MaxMP[playerClass],
-                10,
+            
+            var resp = new User(user[0].name,
+                user[0].playerClass,
+                user[0].hp,
+                user[0].mp,
+                user[0].playerLv,
                 null,
-                user.id
+                user[0].id
             );
+            //log('===>>>',{user:resp},'','');
+            return resp;
         } else {
             return null;
         }

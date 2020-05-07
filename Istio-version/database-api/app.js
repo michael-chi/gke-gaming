@@ -1,15 +1,15 @@
 "use strict";
 
-require('dotenv').config();
 
 const log = require('./utils/logger');
-const serverPort = 9999
+const serverPort = 9998
 const DataAccess = require('./utils/DataAccess');
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
 
 const data = new DataAccess();
+require('dotenv').config();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -65,10 +65,15 @@ app.patch('/gameservers/:id', function(req,res){
 //  Player
 //  * Input: models/user
 app.get('/players/:id', async function (req, res) {
-    log('get /players/:id');
-    var player = await data.EnsurePlayer(req.params.id);
+    try{
+        log('get /players/:id');
+        var player = await data.EnsurePlayer(req.params.id);
 
-    res.send({status:'ok', data:player});
+        res.send({status:'ok', data:player});
+    }catch(ex){
+        console.log(`===========\r\n${ex}`);
+        throw ex;
+    }
 });
 
 app.post('/players/:id', async function(req,res){
@@ -109,8 +114,6 @@ app.get('/matches/:id', async function(req,res){
 });
 
 
-
-
 app.listen(serverPort, function () {
-    log(`Example app listening on port ${serverPort}`);
+    console.log(`app listening on port ${serverPort}`);
 });

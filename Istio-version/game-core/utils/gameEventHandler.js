@@ -3,18 +3,16 @@ var events = require('events');
 // const Firestore = require('./firestore_native');
 var Firebolt = require('../skills/firebolt');
 var Smash = require('../skills/smash');
-const log = require('../utils/logger');
-const DataAPI = require('./utils/DataAccess');
+const log = require('./logger');
+const DataAPI = require('./DataAccess');
 
 const dataApi = new DataAPI();
 
 async function handle(room, user, data) {
-    await spanner.writePlayerWithMutations(user);
+    await dataApi.UpdatePlayer(user);
     log('fired event:' + data.event);
     if (data.event == 'login' || data.event == 'quit') {
         dataApi.UpdateGameServerStastics(room.who());
-    } else {
-        dataApi.UpdatePlayer(user);
     }
     dataApi.updateWorldwideMessages(user, '*', data.event);
 }
@@ -24,7 +22,7 @@ module.exports = class GameEventHandler {
         //log('Configuring ROOM...');
         log('configuring new room', null,'GameEventHandler:configureRoom','info');
         room.setupBroadcaseHandler(function (name, message){
-            log('configuring new room', `broadcasting to ${name}:${message}`,'GameEventHandler:configureRoom','info');
+            log('broadcasting', `broadcasting to ${name}:${message}`,'GameEventHandler:configureRoom','info');
             if (name == '*') {
                 dataApi.updateWorldwideMessages(name, '*', message);
                 //firestore.updateWorldwideMessages(name, '*', message);

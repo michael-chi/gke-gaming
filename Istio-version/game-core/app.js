@@ -9,7 +9,7 @@ const log = require('./utils/logger');
 const DataAPI = require('./utils/DataAccess');
 
 const dataApi = new DataAPI();
-const serverPort = 9999,
+const serverPort = 11111,
     http = require("http"),
     express = require("express"),
     app = express(),
@@ -21,27 +21,27 @@ var room = null;
 
 const CLIENTS = new Map();
 const CLIENT_SOCKETS = new Map();
+var bootstrapper = new GameEventHandler();
 
 app.get('/', function (req, res) {
     res.send('ok');
 });
-var bootstrapper = new GameEventHandler();
 
 //when a websocket connection is established
 websocketServer.on('connection', async (ws, req) => {
     try {
         //send feedback to the incoming connection
         const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-        log(req);
         const port = req.connection.remotePort;
         const clientName = ip + ':' + port;
+        var currentPlayer = null;
         log('client connected', { clientName: `${clientName}` }, 'app.js:websocketServer:onConnect', 'info');
         if (room == null) {
             room = new Room(null);
             //room, firestore, ws, clients
             bootstrapper.configureRoom(room, websocketServer, CLIENTS);
         }
-        ws.send(clientName + ' type login [name] to login to the game');
+        ws.send(clientName + ' type login [id] to login to the game');
         ws.on('message', async function message(message) {
             try {
                 log('message received', { clientName: `${clientName}`, message: message }, 'app.js:websocketServer:onMessage', 'info');
@@ -55,16 +55,22 @@ websocketServer.on('connection', async (ws, req) => {
                 if (message.startsWith('login ')) {
                     var name = message.split(' ')[1];
                     var user = await dataApi.EnsurePlayer(name);
-                    log('player login', { player: `${name}` }, 'app.js:websocketServer:onMessage(login)', 'info');
+                    if(!user){
+                        ws.send(`user ${name} does not exists`);
+                        ws.close();
+                    }else{
+                        log('player login', { player: `${name}` }, 'app.js:websocketServer:onMessage(login)', 'info');
 
-                    //  Setup event handler so we get everything happened in the game world
-                    bootstrapper.configurePlayer(user, room);
+                        //  Setup event handler so we get everything happened in the game world
+                        bootstrapper.configurePlayer(user, room);
+                        user.login();
 
-                    user.login();
+                        CLIENTS.set(user.name, ws);
+                        CLIENT_SOCKETS.set(clientName, user.name);
+                        room.join(user);
 
-                    CLIENTS.set(user.name, ws);
-                    CLIENT_SOCKETS.set(clientName, user.name);
-                    room.join(user);
+                        log('check room players',{players:room.who()},'app.js','info');
+                    }
                 } else if (message == 'quit') {
                     var me = room.players.get(CLIENT_SOCKETS.get(clientName));
                     //broadcast(CLIENT_SOCKETS.get(clientName), 'bye');
@@ -95,11 +101,13 @@ websocketServer.on('connection', async (ws, req) => {
             } catch (e) {
                 console.log('2');
                 console.log(e);
+                throw e;
             }
         });
     } catch (err) {
         console.log('1');
         console.log(err);
+        throw err;
     }
 });
 
@@ -113,3 +121,4 @@ server.listen(serverPort, () => {
         log(`error when Websocket server starting on port ` + serverPort, ex, 'app.js', 'error');
     }
 });
+

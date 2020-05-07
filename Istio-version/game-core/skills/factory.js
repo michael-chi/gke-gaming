@@ -45,6 +45,7 @@ module.exports = class SkillManager {
             if(target){
                 victim = this.findPlayerFunc(target);
             }
+            console.log(`${this.player}`);
             log('describe',{player:this.player.name,skill:skill.name, target:target, original:cmd, message:'no target'}, 'SkillManager:do', 'info');
             return skill.describe(this.player, victim);
         }
