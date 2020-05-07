@@ -1,62 +1,76 @@
 const log = require('./logger');
 const config = require('../models/config');
-const request = require('request-promise');
-
-
+const bent = require('bent')
 
 module.exports = class DataAccess {
     constructor() {
         this._local_mode = config.LOCAL_MODE;
-        //this._spanner = getSpanner();
-        this._firestore = getFirestore(config.PROJECT_ID);
+        this._dataApi = config.DATAAPI_URL;
+    }
+    async post(uri, data){
+        const post = bent(this._dataApi, 'POST', 'json', 200);
+        var resp = await post(uri, data);
+
+        return resp;
+    }
+    async get(uri){
+        const getJSON = bent('json');
+        let resp = await getJSON(`${this._dataApi}/${uri}`);
+        return resp;
+    }
+    async patch(uri, data){
+        const patch = bent(this._dataApi, 'PATCH', 'json');
+        let resp = await patch(uri, data);
+
+        return resp;
     }
     //==============================
     //  Spanner
     //==============================
 
-    async ReadPlayerProfile(id){
-        return await getSpanner().readUserProfiles(id);
+    async ReadPlayerProfile(id)
+    {
+        var resp = await this.get(`profiles/${id}`);
+        return resp;
     }
     UpdatePlayerProfile(player){
-        return getSpanner().updatePlayer(player);
+        var resp = await this.post(`profiles/${player.PlayerId}`);
+        return resp;
     }
     async NewPlayerProfile(player){
-        return getSpanner().newPlayerProfile(player);
+        var resp = await this.post(`profiles/${player.PlayerId}`);
+        return resp;
     }
     async NewMatch(records){
-        var results = await getSpanner().newMatch(records);
-        console.log(`=============N==>${results}`);
+        var resp = await this.post('matches', JSON.stringify(records));
 
-        return results;
+        return resp;
     }
     //==============================
     //  Firestore
     //==============================
     async EnsurePlayer(playerId){
-        const player = await this._firestore.getPlayer(playerId);
-        if(player){
-            return player.toJson();
-        }else{
-            return null;
-        }
+        const player = await this.get(`players/${playerId}`);
+        return player;
     }
     async UpdatePlayer(player){
         //updatePlayerState
-        await this._firestore.upsertPlayer(player);
+        return await this.patch(`players/${player.PlayerId}`, player);
     }
 
-    UpdateGameServerStastics(info) {
-        return this._firestore.updateGameServerStastics(info);
+    async UpdateGameServerStastics(info) {
+        return await this.patch(`gameservers/${info.id}`);
     }
-    GetGameServerStastics(id){
+    async GetGameServerStastics(id){
         if(id){
-            return this._firestore.getGameServerStastics(id);
+            return await this.get(`gameseervers/${id}`);
         }else{
-            return this._firestore.getGameServerStastics();
+            return await this.get(`gameseervers`);
         }
     }
     
     updateWorldwideMessages(issuer, target, message) {
-        return this._firestore.updateWorldwideMessages(issuer, target, message);
+        //return this._firestore.updateWorldwideMessages(issuer, target, message);
+        console.log(`========== updateWorldwideMessages Not Implemented YET ==========`);
     }
 }

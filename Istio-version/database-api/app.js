@@ -33,7 +33,7 @@ app.patch('/profiles/:id', function(req,res){
 });
 app.post('/profiles/:id', function(req,res){
     log('post /profiles/:id');
-    data.UpdatePlayerProfile(req.body);
+    data.NewPlayerProfile(req.body);
     res.send({status:'ok', data:req.body});
 });
 
@@ -49,13 +49,13 @@ app.get('/gameservers', function (req, res) {
     var games = data.GetGameServerStastics();
     res.send({status:'ok', data:games});
 });
-app.patch('/gameservers/:id', function(req,res){
+app.post('/gameservers/:id', function(req,res){
     log('post /gameserver/:id');
     data.UpdateGameServerStastics(req.body);
 
     res.send({status:'ok'});
 });
-app.post('/gameservers/:id', function(req,res){
+app.patch('/gameservers/:id', function(req,res){
     log('post /gameserver/:id');
     data.UpdateGameServerStastics(req.body);
 
@@ -71,13 +71,13 @@ app.get('/players/:id', async function (req, res) {
     res.send({status:'ok', data:player});
 });
 
-app.patch('/players/:id', async function(req,res){
+app.post('/players/:id', async function(req,res){
     log('post /players');
     await data.UpdatePlayer(req.body);
 
     res.send({status:'ok'});
 });
-app.post('/players/:id', async function(req,res){
+app.patch('/players/:id', async function(req,res){
     log('post /players');
     await data.UpdatePlayer(req.body);
 
@@ -86,20 +86,20 @@ app.post('/players/:id', async function(req,res){
 
 //  Match
 //  * Input: models/MatchRecord
-app.patch('/matches', async function(req,res){
+app.post('/matches', async function(req,res){
     log('patch /matches');
     console.log(req.body);
     var result = await data.NewMatch(req.body);
 
     res.send({status:'ok',data:result});
 });
-app.post('/matches', async function(req,res){
-    log('post /matches');
-    console.log(req.body);
-    var result = await data.NewMatch(req.body);
+// app.patch('/matches', async function(req,res){
+//     log('post /matches');
+//     console.log(req.body);
+//     var result = await data.NewMatch(req.body);
 
-    res.send({status:'ok',data:result});
-});
+//     res.send({status:'ok',data:result});
+// });
 
 app.get('/matches/:id', async function(req,res){
     log('post /matches');
