@@ -52,7 +52,7 @@ class FirestoreDatastore {
         return this.datastore.KEY;
     }
     async updateGameServerStastics(stastics) {
-        log('updating game server stastics data', stastics, 'GameWorldRealtimeStatStorage:updateGameWorldStastics', 'info');
+        log('updating game server stastics data', {stastics:stastics}, 'GameWorldRealtimeStatStorage:updateGameWorldStastics', 'info');
         const taskKey = this.datastore.key({
             namespace: 'mud',
             path: ['gameServer', stastics.id]
@@ -170,7 +170,7 @@ class FirestoreDatastore {
 
         try {
             await this.datastore.save(entity);
-            log(`Player ${player.id} created successfully.`, null, 'firestore_datastore.js:upsertPlayer()', 'info');
+            log(`Player ${player.id} created successfully.`, {player:player}, 'firestore_datastore.js:upsertPlayer()', 'info');
         } catch (err) {
             log('ERROR:', { error: err }, 'firestore_datastore.js:upsertPlayer()', 'error');
 

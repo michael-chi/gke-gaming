@@ -11,7 +11,14 @@ module.exports = class SkillManager {
         var target = fragments.length > 1 ? fragments[1]: null;
         var skill = fragments[0];
         console.log(`require('./${skill}')...`);
-        const Skill = eval(`require('./${skill}');`);
+        var Skill = null;
+        
+        try{
+            Skill = eval(`require('./${skill}');`);
+        }catch(ex){
+            log(`cannot find skill ${skill}`,{command:cmd,player:this.player.id},'SkillManager:do','error');
+            Skill = null;
+        }
         
         var victim = null;
         var skill = null;

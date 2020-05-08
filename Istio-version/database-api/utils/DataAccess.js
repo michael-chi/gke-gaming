@@ -60,7 +60,7 @@ module.exports = class DataAccess {
         try {
             const player = await getFirestore().getPlayer(playerId);
             if (player) {
-                log('EnsurePlayer succeed', {playerId:player},'DataAccess:EnsuerPlayer','info');
+                log('EnsurePlayer succeed', {playerId:player.toJson()},'DataAccess:EnsuerPlayer','info');
                 return player.toJson();
             } else {
                 return null;
@@ -71,22 +71,21 @@ module.exports = class DataAccess {
         }
     }
     async UpdatePlayer(player) {
-        //updatePlayerState
         await getFirestore(config.PROJECT_ID).upsertPlayer(player);
     }
 
-    UpdateGameServerStastics(info) {
-        return getFirestore(config.PROJECT_ID).updateGameServerStastics(info);
+    async UpdateGameServerStastics(info) {
+        return await getFirestore(config.PROJECT_ID).updateGameServerStastics(info);
     }
-    GetGameServerStastics(id) {
+    async GetGameServerStastics(id) {
         if (id) {
-            return getFirestore(config.PROJECT_ID).getGameServerStastics(id);
+            return await getFirestore(config.PROJECT_ID).getGameServerStastics(id);
         } else {
-            return getFirestore(config.PROJECT_ID).getGameServerStastics();
+            return await getFirestore(config.PROJECT_ID).getGameServerStastics();
         }
     }
 
-    updateWorldwideMessages(issuer, target, message) {
-        return getFirestore(config.PROJECT_ID).updateWorldwideMessages(issuer, target, message);
+    async UpdateWorldwideMessages(issuer, target, message) {
+        return await getFirestore(config.PROJECT_ID).updateWorldwideMessages(issuer, target, message);
     }
 }

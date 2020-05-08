@@ -12,7 +12,8 @@ async function handle(room, user, data) {
     await dataApi.UpdatePlayer(user);
     log('fired event:' + data.event);
     if (data.event == 'login' || data.event == 'quit') {
-        dataApi.UpdateGameServerStastics(room.who());
+        log('game server stastics',{roomId:room.roomId, players:room.who(),updateTime:Date.now(), players:room.who().length},'gameEventHandler:handle','info');
+        dataApi.UpdateGameServerStastics({id:room.roomId,roomId:room.roomId, players:room.who(),updateTime:Date.now(), players:room.who().length});
     }
     dataApi.updateWorldwideMessages(user, '*', data.event);
 }

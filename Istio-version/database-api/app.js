@@ -50,13 +50,13 @@ app.get('/gameservers', function (req, res) {
     res.send({status:'ok', data:games});
 });
 app.post('/gameservers/:id', function(req,res){
-    log('post /gameserver/:id');
+    log('post /gameserver/:id',{body:req.body},'post /gameserver/:id','info');
     data.UpdateGameServerStastics(req.body);
 
     res.send({status:'ok'});
 });
 app.patch('/gameservers/:id', function(req,res){
-    log('post /gameserver/:id');
+    log('patch /gameserver/:id',{body:req.body},'patch /gameserver/:id','info');
     data.UpdateGameServerStastics(req.body);
 
     res.send({status:'ok'});
@@ -77,7 +77,7 @@ app.get('/players/:id', async function (req, res) {
 });
 
 app.post('/players/:id', async function(req,res){
-    log('post /players');
+    log('post /players/:id',{body:req.body});
     await data.UpdatePlayer(req.body);
 
     res.send({status:'ok'});

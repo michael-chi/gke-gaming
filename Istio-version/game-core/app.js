@@ -18,9 +18,7 @@ const serverPort = 11111,
     websocketServer = new WebSocket.Server({ server });
 
 var room = null;
-
 const CLIENTS = new Map();
-const CLIENT_SOCKETS = new Map();
 var bootstrapper = new GameEventHandler();
 
 app.get('/', function (req, res) {
@@ -54,38 +52,37 @@ websocketServer.on('connection', async (ws, req) => {
                 //  But not now...
                 if (message.startsWith('login ')) {
                     var name = message.split(' ')[1];
-                    var user = await dataApi.EnsurePlayer(name);
-                    if(!user){
+                    currentPlayer = await dataApi.EnsurePlayer(name);
+                    if(!currentPlayer){
                         ws.send(`user ${name} does not exists`);
                         ws.close();
                     }else{
                         log('player login', { player: `${name}` }, 'app.js:websocketServer:onMessage(login)', 'info');
 
                         //  Setup event handler so we get everything happened in the game world
-                        bootstrapper.configurePlayer(user, room);
-                        user.login();
+                        bootstrapper.configurePlayer(currentPlayer, room);
+                        currentPlayer.login();
 
-                        CLIENTS.set(user.name, ws);
-                        CLIENT_SOCKETS.set(clientName, user.name);
-                        room.join(user);
+                        CLIENTS.set(currentPlayer.name, ws);
+                        room.join(currentPlayer);
 
                         log('check room players',{players:room.who()},'app.js','info');
                     }
                 } else if (message == 'quit') {
-                    var me = room.players.get(CLIENT_SOCKETS.get(clientName));
+                    //var me = room.players.get(CLIENT_SOCKETS.get(clientName));
                     //broadcast(CLIENT_SOCKETS.get(clientName), 'bye');
-                    CLIENTS.delete(me.name);
-                    CLIENT_SOCKETS.delete(clientName);
+                    CLIENTS.delete(currentPlayer.name);
 
                     ws.close();
-                    room.leave(me);
-                    me.quit();
+                    room.leave(currentPlayer);
+                    currentPlayer.quit();
 
-                    log('player quit', {player:me.name}, 'app.js:websocketServer:onMessage(quit)', 'info');
+                    log('player quit', {player:currentPlayer.name}, 'app.js:websocketServer:onMessage(quit)', 'info');
 
                 }
                 else {
-                    var factory = new CommandManager(room.players.get(CLIENT_SOCKETS.get(clientName)),
+                    var factory = new CommandManager(//room.players.get(CLIENT_SOCKETS.get(clientName)),
+                        currentPlayer,
                         function (name) {
                             return room.players.get(name);
                         },

@@ -111,6 +111,17 @@ class User {
         this.emit('mp', {actor:this,value:value});
         this._mp = value;
     }
+    toJson(){
+        return {
+            id: this._id,
+            hp: this._hp,
+            mp: this._mp,
+            playerLv: this._lv,
+            playerClass: this._class,
+            name: this._name,
+            state: this._state
+        };
+    }
     toString(){
         return `==================\r\n${this.name}\r\n--------------\r\nlevel ${this.playerLv} ${this.playerClass}\r\nHP:${this.hp}\tMP:${this.mp}\r\n==================`;
     }

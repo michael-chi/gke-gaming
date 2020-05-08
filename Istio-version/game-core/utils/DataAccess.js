@@ -10,9 +10,9 @@ module.exports = class DataAccess {
         this._dataApi = config.DataAccess().DATAAPI_URL;
     }
     async post(uri, data){
-        const post = bent(`${this._dataApi}/${uri}`, 'POST', 'json', 200);
-        var resp = await post(data);
-
+        const post = bent(`${this._dataApi}`, 'POST', { 'content-type': 'application/json' }, 200);
+        var resp = await post(`/${uri}`,data);
+        var data = (await resp.json()).data;
         return resp;
     }
     async get(uri){
@@ -21,9 +21,9 @@ module.exports = class DataAccess {
         return resp;
     }
     async patch(uri, data){
-        const patch = bent(`${this._dataApi}/${uri}`, 'PATCH', 'json');
-        let resp = await patch(data);
-
+        const patch = bent(`${this._dataApi}`, 'PATCH', 'json');
+        let resp = await patch(`/${uri}`,data);
+        var data = (await resp.json()).data;
         return resp;
     }
     //==============================
@@ -66,11 +66,12 @@ module.exports = class DataAccess {
     }
     async UpdatePlayer(player){
         //updatePlayerState
-        return await this.patch(`players/${player.PlayerId}`, player);
+        log('UpdatePlayer',{player:player});
+        return await this.post(`players/${player.id}`, (player.toJson()));
     }
 
     async UpdateGameServerStastics(info) {
-        return await this.patch(`gameservers/${info.id}`);
+        return await this.post(`gameservers/${info.id}`,info);
     }
     async GetGameServerStastics(id){
         if(id){
