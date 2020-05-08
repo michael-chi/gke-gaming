@@ -26,6 +26,7 @@ module.exports = class Smash {
             target.dying();
             message += `. ${target.name} is dying`;
         }
-        return new InGameMessage('*', message);
+        //return new InGameMessage('*', message);
+        return new InGameMessage('*',{damage:damage,targetState:target.state,message:message});
     }
 }

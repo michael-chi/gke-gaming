@@ -41,7 +41,7 @@ module.exports = class CloudSpanner {
     }
     getSpannerDatabase() {
         try {
-            const config = GameConfiguration.DataAccess()();
+            const config = GameConfiguration.DataAccess();
             var spanner = new Spanner({
                 projectId: config.PROJECT_ID,
             });
@@ -162,15 +162,19 @@ module.exports = class CloudSpanner {
         var target = [];
         if (records instanceof Array) {
             records.forEach(match =>{
-                target.push({
-                    ShardId: random.randomArbitrary(0, 100),
-                    MatchId: uuid(),
-                    PlayerId: match.playerId,
-                    TargetId: match.targetId,
-                    MatchTime: match.matchTime
-                });
+                if(match.MatchTime){
+                    match.MatchTime = Spanner.timestamp(new Date(match.MatchTime));
+                }
+                if(!match.ShardId){
+                    match.ShardId = random.randomArbitrary(0,100);
+                }
+                target.push(match);
             })
         } else {
+            records.MatchTime = Spanner.timestamp(new Date(records.MatchTime));
+            if(!records.ShardId){
+                records.ShardId = random.randomArbitrary(0,100);
+            }
             target.push(records);
         }
         try {
@@ -191,18 +195,19 @@ module.exports = class CloudSpanner {
         if (players instanceof Array) {
             players.forEach(
                 player =>{
-                    if(!player.shardId){
-                        player.shardId = random.randomArbitrary(0,100);
+                    if(!player.ShardId){
+                        player.ShardId = random.randomArbitrary(0,100);
                     }
                     target.push(player.toJson()
                     )
                 }
             )
         } else {
-            if(!players.shardId){
-                players.shardId = random.randomArbitrary(0,100);
+            if(!players.ShardId){
+                players.ShardId = random.randomArbitrary(0,100);
             }
-            target.push(players.toJson());
+            log('=============================',{player:players},'','');
+            target.push(players);
         }
         try {
             await this._runMutation(target,

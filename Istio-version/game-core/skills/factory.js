@@ -40,8 +40,8 @@ module.exports = class SkillManager {
             }
             if(victim){
                 var msg = skill.attack(victim);
-                log('attack',{player:this.player.name,skill:skill.name, target:target, original:cmd,message:msg}, 'SkillManager:do', 'info');
-                return msg;
+                log('attack',{player:this.player.name,skill:skill.name, target:target, original:cmd,message:msg.message}, 'SkillManager:do', 'info');
+                return new InGameMessage(this.player.name,msg.message);;
             }else{
                 log('attack',{player:this.player.name,skill:skill.name, target:target, original:cmd, message:'no target'}, 'SkillManager:do', 'info');
                 return new InGameMessage(this.player.name,`who are you looking at ?`);

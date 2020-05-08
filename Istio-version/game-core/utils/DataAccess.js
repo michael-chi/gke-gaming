@@ -21,7 +21,8 @@ module.exports = class DataAccess {
         return resp;
     }
     async patch(uri, data){
-        const patch = bent(`${this._dataApi}`, 'PATCH', 'json');
+        log('patch.........',{data:data},'','debug');
+        const patch = bent(`${this._dataApi}`, 'PATCH', { 'content-type': 'application/json' });
         let resp = await patch(`/${uri}`,data);
         var data = (await resp.json()).data;
         return resp;
@@ -36,15 +37,15 @@ module.exports = class DataAccess {
         return resp;
     }
     async UpdatePlayerProfile(player){
-        var resp = await this.post(`profiles/${player.PlayerId}`);
+        var resp = await this.post(`profiles/${player.PlayerId}`,player.toJson());
         return resp;
     }
     async NewPlayerProfile(player){
-        var resp = await this.post(`profiles/${player.PlayerId}`);
+        var resp = await this.post(`profiles/${player.PlayerId}`,player.toJson());
         return resp;
     }
-    async NewMatch(records){
-        var resp = await this.post('matches', JSON.stringify(records));
+    async NewMatch(record){
+        var resp = await this.post('matches', record.toJson());
 
         return resp;
     }
@@ -56,9 +57,6 @@ module.exports = class DataAccess {
             const resp = await this.get(`players/${playerId}`);
             const player = resp.data;
             return new User(player.name, player.playerClass, player.hp, player.mp, player.playerLv, null, player.id);
-            //var resp = Object.assign(new User('','','','','',null,''), player.data);
-            //log('------',{resp:resp},'','');
-            //return resp;
         }catch(ex){
             log('error EnsurePlayer',{error:ex, playerId:playerId}, 'DataAccess:EnsuerPlayer','error');
             return null;

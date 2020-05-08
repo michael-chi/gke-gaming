@@ -12,8 +12,7 @@ class PlayerProfile {
         this._id = id ? id : round(Math.random() * 10);//Math.floor(Math.random()*(9223372036854775807-1+1)+1);
         this._email = email;
         this._nickname = nickname;
-        this._lastLoginTime = lastLoginTime;
-        this._online = online;
+        this._balance = online;
         this._shardId = shardId;
     }
     
@@ -39,17 +38,12 @@ class PlayerProfile {
     set Nickname(value){
         this._nickname = value;
     }
-    get LastLoginTime (){
-        return this._lastLoginTime;
+    
+    get Balance(){
+        return this._balance;
     }
-    set LastLoginTime(value){
-        this._lastLoginTime = value;
-    }
-    get IsOnline(){
-        return this._online;
-    }
-    set IsOnline(value){
-        this._online = value;
+    set Balance(value){
+        this._balance = value;
     }
     get ShardId (){
         return this._shardId;
@@ -67,8 +61,7 @@ class PlayerProfile {
             Playerid: this._id, 
             Email : this._email,
             Nickname: this._nickname,
-            LastLoginTime: this._lastLoginTime,
-            IsOnLine: this._online,
+            Balance: this._balance,
             ShardId: this._shardId
         };
     }

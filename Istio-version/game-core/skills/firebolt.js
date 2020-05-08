@@ -26,6 +26,6 @@ module.exports = class FireBolt {
             target.dying();
             message += `. ${target.name} is dying`;
         }
-        return new InGameMessage('*',message);
+        return new InGameMessage('*',{damage:damage,targetState:target.state,message:message});
     }
 }

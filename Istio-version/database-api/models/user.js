@@ -26,48 +26,7 @@ class User {
         this.emit('new', this);
     }
     get state() {return this._state;}
-    // dying(){
-    //     this._state = STATE_DYING;
-    //     this._hp = 0;
-
-    //     this.emit('dying', this);
-    // }
-    // resurrection(){
-    //     this._state = STATE_NORMAL;
-    //     this._hp = 200;
-
-    //     this.emit('resurrection', this);
-    // }
-    // skills(){
-    //     return this._skills;
-    // }
-    // skills(value){
-    //     this._skills = value;
-    // }
-    // login(){
-    //     this.emit('login',this);
-    //     //  everytime the player logs in, ensure he is able to fight again...for demo purpose
-    //     if(this._hp <= 0)
-    //         this.resurrection();
-    // }
-    // quit(){
-    //     this.emit('quit',this);
-    // }
-    // attack(target){
-    //     console.log(`${this._self.name} | ${target.name}`)
-    //     if(this._self._state != STATE_NORMAL){
-    //         return new InGameMessage(this._self.name, 'you are dying, you can\'t do anything now...');
-    //     }
-    //     for(var i =0; i < this._skills.length; i++){
-    //         if(Math.random() >= 0.2){
-    //             this.emit('attack', {actor:this, skill:this._skills[i].name});
-    //             return this._skills[i].attack(this._self, target);
-    //         }else{
-    //             this.emit('missed', {actor:this});
-    //         }
-    //     }
-    //     return new InGameMessage('*', `${this._self.name} stands still...`);
-    // }
+    
     get id(){
         return this._id;
     }

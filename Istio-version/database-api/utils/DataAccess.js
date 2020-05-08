@@ -45,13 +45,19 @@ module.exports = class DataAccess {
         return getSpanner().updatePlayer(player);
     }
     async NewPlayerProfile(player) {
-        return getSpanner().newPlayerProfile(player);
+        return getSpanner().newUserProfiles(player);
     }
     async NewMatch(records) {
-        var results = await getSpanner().newMatch(records);
-        console.log(`=============N==>${results}`);
+        try{
+            var results = await getSpanner().newMatch(records);
+            console.log(`=============N==>${results}`);
+    
+            return results;
+        }catch(e){
+            log('error NewMatch',{error:e},'NewMatch','debug');
+            throw e;
+        }
 
-        return results;
     }
     //==============================
     //  Firestore
@@ -71,7 +77,11 @@ module.exports = class DataAccess {
         }
     }
     async UpdatePlayer(player) {
-        await getFirestore(config.PROJECT_ID).upsertPlayer(player);
+        try{
+            await getFirestore(config.PROJECT_ID).upsertPlayer(player);
+        }catch(ex){
+            log('err--------',{error:err},'','debug');
+        }
     }
 
     async UpdateGameServerStastics(info) {
