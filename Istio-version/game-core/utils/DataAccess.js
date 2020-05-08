@@ -9,18 +9,45 @@ module.exports = class DataAccess {
         this._local_mode = config.DataAccess().LOCAL_MODE;
         this._dataApi = config.DataAccess().DATAAPI_URL;
     }
+    async _exec(msg, data, runRestApi){
+        try{
+            var start = Date.now();
+            var result = await runRestApi(data);
+            var span = Date.now() - start;
+            log('rest api run time', {duration:span, function:msg},'DataAccess:_exec()','info');
+            return result;
+        }catch(e){
+            log('error _exec',{error:e},'_exec','debug');
+            throw e;
+        }
+
+    }
     async post(uri, data){
-        const post = bent(`${this._dataApi}`, 'POST', { 'content-type': 'application/json' }, 200);
-        var resp = await post(`/${uri}`,data);
-        var data = (await resp.json()).data;
-        return resp;
+        return await this._exec('post',data, async (d) => {
+            const postJson = bent(`${this._dataApi}`, 'POST', { 'content-type': 'application/json' }, 200);
+            var resp = await postJson(`/${uri}`,d);
+            var body = (await resp.json()).data;
+            return body;
+        });
     }
     async get(uri){
+        return await this._exec('get',null, async (d) => {
+            const getJSON = bent('json');
+            let resp = await getJSON(`${this._dataApi}/${uri}`);
+            return resp;
+        });
         const getJSON = bent('json');
         let resp = await getJSON(`${this._dataApi}/${uri}`);
         return resp;
     }
     async patch(uri, data){
+        return await this._exec('get',data, async (d) => {
+            log('patch.........',{data:d},'','debug');
+            const patch = bent(`${this._dataApi}`, 'PATCH', { 'content-type': 'application/json' });
+            let resp = await patch(`/${uri}`,d);
+            var body = (await resp.json()).data;
+            return body;
+        });
         log('patch.........',{data:data},'','debug');
         const patch = bent(`${this._dataApi}`, 'PATCH', { 'content-type': 'application/json' });
         let resp = await patch(`/${uri}`,data);

@@ -81,7 +81,7 @@ module.exports = class CloudSpanner {
                     log('newMatch exception', { error: ex }, 'CloudSpanner.js:_runMutation:runTransaction', 'error');
                     throw ex;
                 }finally{
-                    database.close();
+                    //database.close();
                 }
             });
         } catch (e) {
@@ -103,7 +103,7 @@ module.exports = class CloudSpanner {
             log(`error _querySpanner`, { error: err, query: query }, "spanner.js:_querySpanner", "info");
             throw err;
         } finally {
-            await database.close();
+            //await database.close();
         }
     }
     //====================

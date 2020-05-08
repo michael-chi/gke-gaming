@@ -4,6 +4,8 @@
 
 ## References
 
+[Spanner for Gaming Best Practice](https://cloud.google.com/solutions/best-practices-cloud-spanner-gaming-database)
+
 [Spanner Data Types](https://cloud.google.com/spanner/docs/data-types)
 
 [What DBAs need to know about Cloud Spanner, part 1: Keys and indexes](https://cloud.google.com/blog/products/gcp/what-dbas-need-to-know-about-cloud-spanner-part-1-keys-and-indexes)
@@ -53,7 +55,16 @@ CREATE TABLE UserProfile (
     PlayerId STRING(36) NOT NULL,
     Email STRING(64) NOT NULL,
     Nickname STRING(64) NOT NULL,
-    Balance INT64 NULL
+    Balance INT64 NULL,
+    MobilePhoneNumber STRING(10) NOT NULL,
+    BirthDay TIMESTAMP NOT NULL,
+    HomeAddress STRING(64) NOT NULL,
+    Gender STRING(1) NOT NULL,
+    PasswordHash STRING(64) NOt NULL,
+    Tag STRING(64) NULL,
+    IsDisable BOOL NULL,
+    DisableReason STRING(24) NULL,
+    IsPromoted BOOL NULL
 ) PRIMARY KEY (ShardId, PlayerId);
 
 ```
@@ -75,6 +86,8 @@ CREATE TABLE PlayerMatchHistory (
     PlayerId STRING(10) NOT NULL,
     TargetId STRING(64) NOT NULL,
     MatchTime TIMESTAMP NOT NULL,
+    RoomId STRING(36) NOT NULL
+    DAMAGE INT64 NOT NULL
 ) PRIMARY KEY (ShardId, MatchId);
 
 ```

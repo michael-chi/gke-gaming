@@ -37,20 +37,33 @@ module.exports = class DataAccess {
     //==============================
     //  Spanner
     //==============================
+    async _exec(msg, runSpanner){
+        try{
+            var start = Date.now();
+            var result = await runSpanner();
+            var span = Date.now() - start;
+            log('spanner run time', {duration:span, function:msg},'DataAccess:_exec()','info');
+            return result;
+        }catch(e){
+            log('error _exec',{error:e},'_exec','debug');
+            throw e;
+        }
 
+    }
     async ReadPlayerProfile(id) {
+        return await this._exec('ReadPlayerProfile', async () => {return await getSpanner().readUserProfiles(id);});
         return await getSpanner().readUserProfiles(id);
     }
-    UpdatePlayerProfile(player) {
-        return getSpanner().updatePlayer(player);
+    async UpdatePlayerProfile(player) {
+        return await getSpanner().updateUserProfiles(player);
     }
     async NewPlayerProfile(player) {
         return getSpanner().newUserProfiles(player);
     }
     async NewMatch(records) {
         try{
-            var results = await getSpanner().newMatch(records);
-            console.log(`=============N==>${results}`);
+            var results =  await this._exec('NewMatch', async () => {return await getSpanner().newMatch(records);});
+            //var results = await getSpanner().newMatch(records);
     
             return results;
         }catch(e){
