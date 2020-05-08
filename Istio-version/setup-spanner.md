@@ -43,8 +43,7 @@ gcloud spanner instances create game-spanner \
 |  PlayerId | String | | Player ID |
 |  Email | String | | Player's email |
 |  Nickname | String | | Player's nick name |
-|  LastLoginTime | Timestamp| | Last login time |
-|  IsOnLine | BOOL | | Is the player currently online |
+|  Balance | INT64 | | Player's credit balance |
 
 其中, Spanner會自動地針對插入的資料做Split, 如果太多資料被寫入到同一個Split, 那麼這個Split就會變成讀寫的瓶頸. 因此在這裡我的每一筆記錄前都會有一個隨機的ShardId, 並且作為Primary Key的第一個欄位. 這樣應該可以保證不會產生Hotspot
 
@@ -54,8 +53,7 @@ CREATE TABLE UserProfile (
     PlayerId STRING(36) NOT NULL,
     Email STRING(64) NOT NULL,
     Nickname STRING(64) NOT NULL,
-    LastLoginTime TIMESTAMP NOT NULL, 
-    IsOnLine BOOL NOT NULL
+    Balance INT64 NULL
 ) PRIMARY KEY (ShardId, PlayerId);
 
 ```
