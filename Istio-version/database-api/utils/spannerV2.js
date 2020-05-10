@@ -4,8 +4,13 @@ var GameConfiguration = require('../models/config');
 const MatchRecord = require('../models/matchRecord');
 const { uuid } = require('uuidv4');
 const log = require('./logger');
-
 const random = require('./random');
+//== reuse spanner instance ?
+const config = GameConfiguration.DataAccess();
+var spanner = new Spanner({
+    projectId: config.PROJECT_ID,
+});
+var instance = spanner.instance(config.INSTANCE_ID);
 
 Array.prototype.toString = function () {
     const temp = [];
@@ -41,14 +46,7 @@ module.exports = class CloudSpanner {
     }
     getSpannerDatabase() {
         try {
-            const config = GameConfiguration.DataAccess();
-            var spanner = new Spanner({
-                projectId: config.PROJECT_ID,
-            });
-            // Gets a reference to a Cloud Spanner instance
-            var instance = spanner.instance(config.INSTANCE_ID);
             var database = instance.database(config.DATABASE_ID);
-
             return database;
         } catch (e) {
             log('error constructing CloudSpanner', { error: e }, 'CloudSpanner.js::initSpanner', 'error');
@@ -66,6 +64,7 @@ module.exports = class CloudSpanner {
         try {
             database = this.getSpannerDatabase();
             database.runTransaction(async (err, transaction) => {
+                var s = Date.now();
                 if (err) {
                     console.log(err);
                     log('error _runMutation', { error: err, match: records }, 'CloudSpanner.js:_runMutation', 'error');
@@ -77,18 +76,19 @@ module.exports = class CloudSpanner {
                     }
                     );
                     await transaction.commit();
+                    var e = Date.now();
+                    log('_runMutation completed',{duration:(e-s)},'_runMutation','debug');
                 } catch (ex) {
-                    log('newMatch exception', { error: ex }, 'CloudSpanner.js:_runMutation:runTransaction', 'error');
+                    log('_runMutation exception (inner)', { error: ex }, 'CloudSpanner.js:_runMutation:runTransaction', 'error');
                     throw ex;
                 }finally{
-                    //database.close();
+                    //database.close();    //TODO: should close ?
                 }
             });
         } catch (e) {
-            log('newMatch exception', { error: e }, 'CloudSpanner.js:_runMutation', 'error');
+            log('_runMutation exception (outter)', { error: e }, 'CloudSpanner.js:_runMutation', 'error');
             throw e;
-        } finally {
-        }
+        } 
     }
     async _querySpanner(query, callback) {
         try {
@@ -103,15 +103,16 @@ module.exports = class CloudSpanner {
             rows.forEach(
                 row => callback(row, results)
             );
-            if(results.length > 0){
+            if(results.length == 1){
+                return results[0];
+            }else if(results.length > 0){
                 return results;
-            }
-            else return null;
+            }else return null;
         } catch (err) {
             log(`error _querySpanner`, { error: err, query: query }, "spanner.js:_querySpanner", "info");
             throw err;
         } finally {
-            //await database.close();
+            //await database.close();   //TODO: should close ?
         }
     }
     
@@ -213,12 +214,18 @@ STORING (PlayerId, TargetId, DAMAGE, RoomId);
                     if(!player.UUID){
                         player.UUID = uuid();
                     }
-                    target.push(player.toJson())
+                    if(!player.CreateTime){
+                        player.CreateTime = Spanner.timestamp(Date.now());
+                    }
+                    target.push(player)
                 }
             )
         } else {
             if(!players.UUID){
                 players.UUID = uuid();
+            }
+            if(!players.CreateTime){
+                players.CreateTime = Spanner.timestamp(Date.now());
             }
             log('=============================',{player:players},'','');
             target.push(players);
@@ -229,12 +236,12 @@ STORING (PlayerId, TargetId, DAMAGE, RoomId);
                     await tx.insert('UserProfile', item);
                 });
             return target;
-
         } catch (e) {
             console.log('==========================================');
             console.log(e);
+
+            throw e;
         }
-        return players;
     }
     
     async updateUserProfiles(profile) {

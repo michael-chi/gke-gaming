@@ -54,15 +54,21 @@ module.exports = class DataAccess {
         return await this._exec('ReadPlayerProfile', async () => {return await getSpanner().readUserProfiles(id);});
     }
     async UpdatePlayerProfile(player) {
-        return await getSpanner().updateUserProfiles(player);
+        return await this._exec('UpdatePlayerProfile', async () => {return await getSpanner().updateUserProfiles(player);});
     }
     async NewPlayerProfile(player) {
-        return getSpanner().newUserProfiles(player);
+        try{
+            var result = await this._exec('NewPlayerProfile', async () => {
+                return await getSpanner().newUserProfiles(player);
+            });
+            return result;
+        }catch(ex){
+            throw ex;
+        }
     }
     async NewMatch(records) {
         try{
             var results =  await this._exec('NewMatch', async () => {return await getSpanner().newMatch(records);});
-            //var results = await getSpanner().newMatch(records);
     
             return results;
         }catch(e){

@@ -43,14 +43,14 @@ app.patch('/profiles/:id', function (req, res) {
     }
 
 });
-app.post('/profiles/:id', function (req, res) {
+app.post('/profiles/', function (req, res) {
     try {
-        log('post /profiles/:id', { body: req.body });
+        log('post /profiles/', { body: req.body });
         data.NewPlayerProfile(req.body);
         res.send({ status: 'ok', data: req.body });
     } catch (e) {
         log('========', { error: e }, '/profiles/:id', 'debug');
-        throw e;
+        res.send({ status: 'error', error: e });
     }
 
 });
