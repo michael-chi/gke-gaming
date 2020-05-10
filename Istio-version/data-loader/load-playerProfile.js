@@ -2,7 +2,7 @@ var random_name = require('node-random-name');
 const { uuid } = require('uuidv4');
 require('dotenv').config();
 
-const Profile = require('../models/PlayerProfile');
+const Profile = require('../database-api/models/PlayerProfile');
 var random_name = require('node-random-name');
 
 const Classes = ['Warrior', 'Mage', 'Knight', 'Hunter'];
@@ -14,7 +14,7 @@ const time_begin = new Date(2018, 1, 1, 01, 01, 0).getTime();
 const time_end = new Date(2020, 5, 1, 23, 59, 59).getTime();
 
 
-const Spanner = require('../utils/spanner');
+const Spanner = require('../database-api/utils/spanner');
 
 
 
