@@ -1,15 +1,24 @@
 /*
-|  ShardId	| INT64 	| | ShardId 	|  
-|  PlayerId | String | | Player ID |
-|  Email | String | | Player's email |
-|  Nickname | String | | Player's nick name |
-|  LastLoginTime | Timestamp| | Last login time |
-|  IsOnLine | BOOL | | Is the player currently online |
+    UUID STRING(36) NOT NULL,           -- UUID for this player, random, for distribution
+    PlayerId STRING(36) NOT NULL,       -- Player readable Id, such as michael-chi
+    Email STRING(64) NOT NULL,
+    Nickname STRING(64) NOT NULL,
+    Balance INT64 NULL,
+    MobilePhoneNumber STRING(10) NOT NULL,
+    BirthDay TIMESTAMP NOT NULL,
+    HomeAddress STRING(64) NOT NULL,
+    Gender STRING(1) NOT NULL,
+    PasswordHash STRING(64) NOt NULL,
+    Tag STRING(64) NULL,
+    IsDisable BOOL NULL,
+    DisableReason STRING(24) NULL,
+    IsPromoted BOOL NULL,
+    CreateTime TIMESTAMP NOT NULL,
 */
 
 class PlayerProfile {
     constructor(id, email, nickname, lastLoginTime, online, shardId) {
-        this._id = id ? id : round(Math.random() * 10);//Math.floor(Math.random()*(9223372036854775807-1+1)+1);
+        this._id = id ? id : Math.round(Math.random() * 10);//Math.floor(Math.random()*(9223372036854775807-1+1)+1);
         this._email = email;
         this._nickname = nickname;
         this._balance = online;

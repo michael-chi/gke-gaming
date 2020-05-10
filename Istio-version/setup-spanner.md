@@ -38,7 +38,7 @@ gcloud spanner instances create game-spanner \
 接下來回到Google Cloud Console, 我要建立幾個Table
 
 -   UserProfile
-
+<!--
 |  Column Name	| Column Type | Is PK	| Comment 	| 
 |------|------|------|------|
 |  ShardId	| INT64 	| | ShardId 	|  
@@ -46,13 +46,13 @@ gcloud spanner instances create game-spanner \
 |  Email | String | | Player's email |
 |  Nickname | String | | Player's nick name |
 |  Balance | INT64 | | Player's credit balance |
-
+-->
 其中, Spanner會自動地針對插入的資料做Split, 如果太多資料被寫入到同一個Split, 那麼這個Split就會變成讀寫的瓶頸. 因此在這裡我的每一筆記錄前都會有一個隨機的ShardId, 並且作為Primary Key的第一個欄位. 這樣應該可以保證不會產生Hotspot
 
 ```sql
 CREATE TABLE UserProfile (
-    ShardId INT64 NOT NULL,
-    PlayerId STRING(36) NOT NULL,
+    UUID STRING(36) NOT NULL,           -- UUID for this player, random, for distribution
+    PlayerId STRING(36) NOT NULL,       -- Player readable Id, such as michael-chi
     Email STRING(64) NOT NULL,
     Nickname STRING(64) NOT NULL,
     Balance INT64 NULL,
@@ -64,13 +64,40 @@ CREATE TABLE UserProfile (
     Tag STRING(64) NULL,
     IsDisable BOOL NULL,
     DisableReason STRING(24) NULL,
-    IsPromoted BOOL NULL
-) PRIMARY KEY (ShardId, PlayerId);
+    IsPromoted BOOL NULL,
+    CreateTime TIMESTAMP NOT NULL,
+) PRIMARY KEY (UUID);
 
+CREATE TABLE TransactionHistory
+    UUID STRING(36) NOT NULL,   --  random UUIDv4, for distribution
+    PlayerId STRING(36) NOT NULL,       --  player readable id who did this transaction
+    PurchasedItemID STRING(36) NOT NULL,
+    PurchasedQuantity INT64 NOT NULL,
+    TransactionTime TIMESTAMP NOT NULL,
+    StoreChannelID STRING(36) NOT NULL
+) PRIMARY KEY (UUID)
+
+CREATE INDEX IX_PlayerProfileInGame_By_PlayerId ON UserProfile
+(
+    PlayerId
+)
+STORING (Email, Nickname, Balance, IsDisable, IsPromoted, Tag, DisableReason);
+
+CREATE INDEX IX_TransactionHistory_By_PlayerId On TransactionHistory
+(
+    PlayerId, TransactionTime DESC
+)
+STORING(PurchasedItemID, PurchasedQuantityID, StoreChannelID)
+
+CREATE INDEX IX_PlayerProfileInGame_By_PlayerId On UserProfile
+(
+    PlayerId
+)
+STORING (Email, Nickname, Balance, MobilePhoneNumber, BirthDay, HomeAddress, Gender, PasswordHash, IsDisable, DisableReason, IsPromoted, CreateTime)
 ```
 
 -   PlayerMatchHistory
-
+<!--
 |  Column Name	| Column Type 	|Is PK|  Comment 	| 
 |------|------|------|------|
 |  ShardId	| String 	| | ShardId 	|  	
@@ -78,39 +105,26 @@ CREATE TABLE UserProfile (
 |  TargetId	| String 	| | Opponent Player Id/Name 	|  	
 |  MatchTime | TimeStamp | | When did this match started |
 |  MatchId | String | | How many times this player matches agaist this opponent |
-
+-->
 ```sql
 CREATE TABLE PlayerMatchHistory (
-    ShardId INT64 NOT NULL,
     MatchId STRING(36) NOT NULL,
     PlayerId STRING(10) NOT NULL,
     TargetId STRING(64) NOT NULL,
     MatchTime TIMESTAMP NOT NULL,
     RoomId STRING(36) NOT NULL
     DAMAGE INT64 NOT NULL
-) PRIMARY KEY (ShardId, MatchId);
-
-```
-
-建立Index
-
-```sql
-CREATE INDEX IX_PlayerProfile_By_PlayerId ON UserProfile
-(
-    PlayerId
-)
-STORING (Email, Nickname, LastLoginTime, IsOnLine);
-
-CREATE INDEX IX_PlayerMatchHistory_By_PlayerId ON PlayerMatchHistory
-(
-    PlayerId 
-)
-STORING (MatchTime, TargetId);
-
+) PRIMARY KEY (MatchId);
 
 CREATE INDEX IX_PlayerMatchHistory_By_MatchTime_DESC ON PlayerMatchHistory
 (
     MatchTime DESC
 )
-STORING (PlayerId, TargetId);
+STORING (PlayerId, TargetId, DAMAGE, RoomId);
+
+CREATE INDEX IX_PlayerMatchHistory_By_PlayerId_MatchTime_DESC ON PlayerMatchHistory
+(
+    PlayerId,MatchTime DESC
+)
+STORING (PlayerId, TargetId, DAMAGE, RoomId);
 ```

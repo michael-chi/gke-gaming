@@ -158,6 +158,62 @@ module.exports = class CloudSpanner {
             throw err;
         }
     }
+    /*
+    CREATE INDEX IX_PlayerProfileInGame_By_PlayerId ON UserProfile
+(
+    PlayerId
+)
+STORING (Email, Nickname, Balance, IsDisable, IsPromoted, Tag, DisableReason);
+
+    */
+    async readUserProfilesV2(playerId) {
+        var query = null;
+        if (playerId)
+            query = {
+                sql: `SELECT UUID, PlayerId,Email, Nickname, Balance, IsDisable, IsPromoted, Tag, DisableReason FROM UserProfile@{force_index=IX_PlayerProfileInGame_By_PlayerId} where PlayerId='${playerId}'`,
+            };
+        else
+            query = {
+                sql: `SELECT UUID, PlayerId,Email, Nickname, Balance, IsDisable, IsPromoted, Tag, DisableReason FROM UserProfile@{force_index=IX_PlayerProfileInGame_By_PlayerId}'`,
+            };
+
+        try {
+            var results = await this._querySpanner(query, (row, items) => {
+                const json = row.toJSON();
+                items.push(new PlayerProfile(json.PlayerId, json.Email, json.Nickname, json.LastLoginTime, json.IsOnLine, json.ShardId).toJson());
+            });
+
+            return results;
+        } catch (err) {
+            log(`unable to read user profile`, { error: err, playerId: playerId }, "spanner.js:readUserProfiles", "info");
+            throw err;
+        }
+    }
+    /*
+CREATE INDEX IX_PlayerMatchHistory_By_PlayerId_MatchTime_DESC ON PlayerMatchHistory
+(
+    playerId,MatchTime DESC
+)
+STORING (PlayerId, TargetId, DAMAGE, RoomId);
+    */
+    async readMatchV2(id) {
+        var query = null;
+        if (id)
+            query = {
+                sql: `SELECT MatchId, PlayerId, TargetId, MatchTime,Damage,RoomId FROM PlayerMatchHistory@{force_index=IX_PlayerMatchHistory_By_PlayerId_MatchTime_DESC} where MatchId='${id}'`,
+            };
+        else
+            query = {
+                sql: `SELECT MatchId, PlayerId, TargetId, MatchTime,Damage,RoomId FROM PlayerMatchHistory@{force_index=IX_PlayerMatchHistory_By_MatchTime_DESC}`,
+            };
+        var results = await this._querySpanner(query, (row, items) => {
+            const json = row.toJSON();
+            items.push(new MatchRecord(json.PlayerId, json.TargetId, json.MatchId, json.ShardId, json.MatchTime).toJson());
+        });
+        console.log(`========>${results}`);
+        return results;
+        
+    }
     async newMatch(records) {
         var target = [];
         if (records instanceof Array) {

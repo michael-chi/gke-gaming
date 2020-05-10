@@ -23,7 +23,7 @@ function getSpanner() {
         const mock = require('./mock/spanner');
         return new mock();
     } else {
-        const CloudSpanner = require('./spanner');
+        const CloudSpanner = require('./spannerV2');
         return new CloudSpanner();
     }
 }
