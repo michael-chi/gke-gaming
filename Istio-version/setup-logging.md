@@ -8,10 +8,10 @@ Overview
 Steps
 =====
 
-Enable Sidecar Injecttion
+<!-- Enable Sidecar Injecttion
 ```shell
 kubectl label namespace default istio-injection=enabled
-```
+``` -->
 
 我們有幾個Client Library的[選擇](https://cloud.google.com/logging/docs/setup/nodejs#installing_the_plugin_2), 在這邊我使用Winston
 

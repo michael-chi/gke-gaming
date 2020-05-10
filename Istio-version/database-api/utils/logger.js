@@ -13,6 +13,7 @@ const logger = winston.createLogger({
 // Writes some log entries
 module.exports = function log(msg, param, source, severity) {
     try{
+      if(severity != 'debug')
         logger.info({
             message:msg,
             timestamp:Date.now(),

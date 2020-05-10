@@ -11,9 +11,9 @@ spec:
     app: data-api
   ports:
   - protocol: TCP
-    port: 9999
+    port: 9998
     name: data-api
-    targetPort: 9999
+    targetPort: 9998
 #   type: ClusterIP
 ---
 apiVersion: apps/v1
@@ -51,18 +51,18 @@ spec:
             #       effect: NoSchedule
             containers:
             -   name: data-api
-                image: gcr.io/kalschi-istio/data-api:v4
+                image: gcr.io/kalschi-istio/data-api:v9
                 imagePullPolicy: Always
                 ports:
                     -   name: ws
-                        containerPort: 9999
+                        containerPort: 9998
                 livenessProbe:
                     tcpSocket:
-                        port: 9999
+                        port: 9998
                     initialDelaySeconds: 30
                 readinessProbe:
                     tcpSocket:
-                        port: 9999
+                        port: 9998
                     initialDelaySeconds: 30
                 resources:
                     requests:

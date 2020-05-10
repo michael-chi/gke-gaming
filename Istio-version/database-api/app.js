@@ -21,10 +21,10 @@ app.get('/', function (req, res) {
 
 //  Profile
 //  * Input: modules/PlayerProfile
-app.get('/profiles/:id', function (req, res) {
+app.get('/profiles/:id', async function (req, res) {
     try {
         log('get /profiles/:id');
-        var user = data.ReadPlayerProfile(req.params.id);
+        var user = await data.ReadPlayerProfile(req.params.id);
         res.send({ status: 'ok', data: user });
     } catch (e) {
         log('========', { error: e }, '/profiles/:id', 'debug');

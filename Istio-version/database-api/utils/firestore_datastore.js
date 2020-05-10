@@ -119,9 +119,8 @@ class FirestoreDatastore {
             path: ['players', playerId]
         });
         var user = await this.datastore.get(key);
-
-        if (user) {
-            
+        
+        if (user && user.length > 0) {
             var resp = new User(user[0].name,
                 user[0].playerClass,
                 user[0].hp,

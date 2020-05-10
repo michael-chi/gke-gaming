@@ -11,9 +11,9 @@ spec:
     app: mud
   ports:
   - protocol: TCP
-    port: 9999
+    port: 11111
     name: mud
-    targetPort: 9999
+    targetPort: 11111
 #   type: ClusterIP
 ---
 apiVersion: apps/v1
@@ -51,30 +51,32 @@ spec:
             #       effect: NoSchedule
             containers:
             -   name: mud
-                image: gcr.io/kalschi-istio/mud:gke-v22
+                image: gcr.io/kalschi-istio/mud:gke-v28
                 imagePullPolicy: Always
                 ports:
                     -   name: ws
-                        containerPort: 9999
+                        containerPort: 11111
                 livenessProbe:
                     tcpSocket:
-                        port: 9999
+                        port: 11111
                     initialDelaySeconds: 30
                 readinessProbe:
                     tcpSocket:
-                        port: 9999
+                        port: 11111
                     initialDelaySeconds: 30
                 resources:
                     requests:
                         cpu: 100m
                         memory: 3.5G   
                 env:
-                    - name: PROJECT_ID
-                      value: kalschi-istio
+                    - name: DATAAPI_URL
+                      valueFrom:
+                        configMapKeyRef:
+                            name: data-api-config
+                            key: DATAAPI_URL
                     - name: LOCAL_MODE
-                      value: 'true'
-                    # - name: INSTANCE_ID
-                    #   value: game-spanner
-                    # - name: DATABASE_ID
-                    #   value: mud-sample
+                      valueFrom:
+                        configMapKeyRef:
+                            name: data-api-config
+                            key: LOCAL_MODE
                 

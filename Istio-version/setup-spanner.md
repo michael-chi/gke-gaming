@@ -55,22 +55,22 @@ CREATE TABLE UserProfile (
     PlayerId STRING(36) NOT NULL,       -- Player readable Id, such as michael-chi
     Email STRING(64) NOT NULL,
     Nickname STRING(64) NOT NULL,
-    Balance INT64 NULL,
+    Balance INT64 ,
     MobilePhoneNumber STRING(10) NOT NULL,
     BirthDay TIMESTAMP NOT NULL,
     HomeAddress STRING(64) NOT NULL,
     Gender STRING(1) NOT NULL,
     PasswordHash STRING(64) NOt NULL,
-    Tag STRING(64) NULL,
-    IsDisable BOOL NULL,
-    DisableReason STRING(24) NULL,
-    IsPromoted BOOL NULL,
+    Tag STRING(64) ,
+    IsDisable BOOL ,
+    DisableReason STRING(24) ,
+    IsPromoted BOOL ,
     CreateTime TIMESTAMP NOT NULL,
 ) PRIMARY KEY (UUID);
 
-CREATE TABLE TransactionHistory
-    UUID STRING(36) NOT NULL,   --  random UUIDv4, for distribution
-    PlayerId STRING(36) NOT NULL,       --  player readable id who did this transaction
+CREATE TABLE TransactionHistory(
+    UUID STRING(36) NOT NULL,  
+    PlayerId STRING(36) NOT NULL,    
     PurchasedItemID STRING(36) NOT NULL,
     PurchasedQuantity INT64 NOT NULL,
     TransactionTime TIMESTAMP NOT NULL,
@@ -87,9 +87,9 @@ CREATE INDEX IX_TransactionHistory_By_PlayerId On TransactionHistory
 (
     PlayerId, TransactionTime DESC
 )
-STORING(PurchasedItemID, PurchasedQuantityID, StoreChannelID)
+STORING(PurchasedItemID, PurchasedQuantity, StoreChannelID)
 
-CREATE INDEX IX_PlayerProfileInGame_By_PlayerId On UserProfile
+CREATE INDEX IX_PlayerProfileOffGame_By_PlayerId On UserProfile
 (
     PlayerId
 )
@@ -127,4 +127,18 @@ CREATE INDEX IX_PlayerMatchHistory_By_PlayerId_MatchTime_DESC ON PlayerMatchHist
     PlayerId,MatchTime DESC
 )
 STORING (PlayerId, TargetId, DAMAGE, RoomId);
+```
+
+
+
+-   Add new Node with Spanner Permission
+
+```shell
+gcloud beta container --project "kalschi-istio" node-pools create "spanner-pool" --cluster "gke2" --region "us-central1" --node-version "1.14.10-gke.37" --machine-type "e2-standard-4" --image-type "COS" --disk-type "pd-standard" --disk-size "100" --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" --num-nodes "1" --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0
+```
+
+```shell
+kubectl apply -f ./assests/docker-data-api/configMap.yaml
+kubectl apply -f ./assests/docker-data-api/app.yaml
+kubectl apply -f ./assests/docker-data-api/route.yaml
 ```

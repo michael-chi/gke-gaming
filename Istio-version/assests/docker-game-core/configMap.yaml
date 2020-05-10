@@ -8,3 +8,4 @@ data:
   INSTANCE_ID: mud-spanner
   DATABASE_ID: mud
   LOCAL_MODE: 'false'
+  DATAAPI_URL: http://35.188.137.20

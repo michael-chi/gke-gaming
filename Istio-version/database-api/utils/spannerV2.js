@@ -92,13 +92,21 @@ module.exports = class CloudSpanner {
     }
     async _querySpanner(query, callback) {
         try {
+            var s = Date.now();
+
             var database = this.getSpannerDatabase();
             const [rows] = await database.run(query);
+
+            var e = Date.now();
+            log(`_querySpanner result`,{rows:rows,time:(e-s)},'_querySpanner','info');
             var results = [];
             rows.forEach(
                 row => callback(row, results)
             );
-            return results;
+            if(results.length > 0){
+                return results;
+            }
+            else return null;
         } catch (err) {
             log(`error _querySpanner`, { error: err, query: query }, "spanner.js:_querySpanner", "info");
             throw err;
@@ -106,58 +114,8 @@ module.exports = class CloudSpanner {
             //await database.close();
         }
     }
-    //====================
-    /*
-    CREATE TABLE PlayerMatchHistory (
-        ShardId INT64 NOT NULL,
-        MatchId STRING(36) NOT NULL,
-        PlayerId STRING(10) NOT NULL,
-        TargetId STRING(64) NOT NULL,
-        MatchTime TIMESTAMP NOT NULL,
-    ) PRIMARY KEY (ShardId, MatchId);
-    */
-
-    async readMatch(id) {
-        var query = null;
-        if (id)
-            query = {
-                sql: `SELECT ShardId, MatchId, PlayerId, TargetId, MatchTime FROM PlayerMatchHistory where MatchId='${id}'`,
-            };
-        else
-            query = {
-                sql: `SELECT ShardId, MatchId, PlayerId, TargetId, MatchTime FROM PlayerMatchHistory where ShardId between 0 and 100`,
-            };
-        var results = await this._querySpanner(query, (row, items) => {
-            const json = row.toJSON();
-            items.push(new MatchRecord(json.PlayerId, json.TargetId, json.MatchId, json.ShardId, json.MatchTime).toJson());
-        });
-        console.log(`========>${results}`);
-        return results;
-        
-    }
-    async readUserProfiles(playerId) {
-        var query = null;
-        if (playerId)
-            query = {
-                sql: `SELECT ShardId, PlayerId, Email, Nickname, LastLoginTime, IsOnLine FROM UserProfile where PlayerId='${playerId}'`,
-            };
-        else
-            query = {
-                sql: `SELECT ShardId, PlayerId, Email, Nickname, LastLoginTime, IsOnLine FROM UserProfile where ShardId between 0 and 100`,
-            };
-
-        try {
-            var results = await this._querySpanner(query, (row, items) => {
-                const json = row.toJSON();
-                items.push(new PlayerProfile(json.PlayerId, json.Email, json.Nickname, json.LastLoginTime, json.IsOnLine, json.ShardId).toJson());
-            });
-
-            return results;
-        } catch (err) {
-            log(`unable to read user profile`, { error: err, playerId: playerId }, "spanner.js:readUserProfiles", "info");
-            throw err;
-        }
-    }
+    
+    
     /*
     CREATE INDEX IX_PlayerProfileInGame_By_PlayerId ON UserProfile
 (
@@ -166,7 +124,7 @@ module.exports = class CloudSpanner {
 STORING (Email, Nickname, Balance, IsDisable, IsPromoted, Tag, DisableReason);
 
     */
-    async readUserProfilesV2(playerId) {
+    async readUserProfiles(playerId) {
         var query = null;
         if (playerId)
             query = {
@@ -180,9 +138,10 @@ STORING (Email, Nickname, Balance, IsDisable, IsPromoted, Tag, DisableReason);
         try {
             var results = await this._querySpanner(query, (row, items) => {
                 const json = row.toJSON();
-                items.push(new PlayerProfile(json.PlayerId, json.Email, json.Nickname, json.LastLoginTime, json.IsOnLine, json.ShardId).toJson());
+                items.push(json);
+                //items.push(new PlayerProfileV2(json.PlayerId, json.Email, json.Nickname, json.LastLoginTime, json.IsOnLine, json.ShardId).toJson());
             });
-
+            log('readUserProfile results',{results:results},'readUserProfile','debug');
             return results;
         } catch (err) {
             log(`unable to read user profile`, { error: err, playerId: playerId }, "spanner.js:readUserProfiles", "info");
@@ -196,7 +155,7 @@ CREATE INDEX IX_PlayerMatchHistory_By_PlayerId_MatchTime_DESC ON PlayerMatchHist
 )
 STORING (PlayerId, TargetId, DAMAGE, RoomId);
     */
-    async readMatchV2(id) {
+    async readMatch(id) {
         var query = null;
         if (id)
             query = {

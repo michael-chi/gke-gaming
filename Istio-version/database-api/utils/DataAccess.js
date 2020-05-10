@@ -18,7 +18,7 @@ function getFirestore(projectId) {
 
 function getSpanner() {
     log(`local mode is ${config.LOCAL_MODE}`);
-    if (config.LOCAL_MODE) {
+    if (config.LOCAL_MODE == 'true') {
         log('mocking spanner');
         const mock = require('./mock/spanner');
         return new mock();
@@ -52,7 +52,6 @@ module.exports = class DataAccess {
     }
     async ReadPlayerProfile(id) {
         return await this._exec('ReadPlayerProfile', async () => {return await getSpanner().readUserProfiles(id);});
-        return await getSpanner().readUserProfiles(id);
     }
     async UpdatePlayerProfile(player) {
         return await getSpanner().updateUserProfiles(player);
