@@ -1,13 +1,11 @@
 var events = require('events');
-// const CloudSpanner = require('./spanner');
-// const Firestore = require('./firestore_native');
 var Firebolt = require('../skills/firebolt');
 var Smash = require('../skills/smash');
 const log = require('./logger');
 const DataAPI = require('./DataAccess');
 const MatchRecord = require('../models/matchRecord');
 const dataApi = new DataAPI();
-
+const {uuid} = require('uuidv4');
 async function handle(room, user, data) {
     log('fired event:' + data.event);
     if (data.event == 'login' || data.event == 'quit') {
@@ -25,9 +23,9 @@ async function handle(room, user, data) {
 async function handleMatchEvent(room, user, data) {
     //{actor:this._me, skill:this._me._skills[i].name,target:target,result:result}
     await dataApi.UpdatePlayer(user);
-    log('fired event:' + data.event,{data:data},'gaemEventHandler','debug');
+    log('match event:' + data.event,{data:data},'gaemEventHandler','debug');
     
-    await dataApi.NewMatch(new MatchRecord(user.id, data.result.target.id,null,null, Date.now()));//(user, '*', data.event);
+    await dataApi.NewMatch(new MatchRecord(user.playerId, data.result.target._playerId,uuid(),room.roomId, Date.now()));
 }
 module.exports = class GameEventHandler {
     

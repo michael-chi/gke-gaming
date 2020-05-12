@@ -47,7 +47,7 @@ gcloud spanner instances create game-spanner \
 |  Nickname | String | | Player's nick name |
 |  Balance | INT64 | | Player's credit balance |
 -->
-其中, Spanner會自動地針對插入的資料做Split, 如果太多資料被寫入到同一個Split, 那麼這個Split就會變成讀寫的瓶頸. 因此在這裡我的每一筆記錄前都會有一個隨機的ShardId, 並且作為Primary Key的第一個欄位. 這樣應該可以保證不會產生Hotspot
+其中, Spanner會自動地針對插入的資料做Split, 如果太多資料被寫入到同一個Split, 那麼這個Split就會變成讀寫的瓶頸. UUID, 並且作為Primary Key的第一個欄位. 這樣應該可以保證不會產生Hotspot
 
 ```sql
 CREATE TABLE UserProfile (
@@ -108,8 +108,6 @@ ON UserProfile (
     CreateTime
 )
 
-
-
 CREATE INDEX IX_TransactionHistory_By_PlayerId On TransactionHistory
 (
     PlayerId, TransactionTime DESC
@@ -117,26 +115,10 @@ CREATE INDEX IX_TransactionHistory_By_PlayerId On TransactionHistory
 STORING(PurchasedItemID, PurchasedQuantity, StoreChannelID)
 
 ```
--   Avator
-```sql
 
-CREATE TABLE Avators(
-    UUID STRING(36) NOT NULL,  
-    PlayerId STRING(36) NOT NULL,    
-    HP INT64 NOT NULL,
-    MP INT64 NOT NULL,
-    MAX_HP INT64, NOT NULL,
-    MAX_MP INT64 NOT NULL,
-    PlayerClass STRING(12) NOT NULL,
-    PlayerLevel INT64 NOT NULL,
-    IsOnline BOOL NOT NULL,
-    CreateTime TIMESTAMP NOT NULL,
-    Tags STRING(128) NOT NULL,
-    SeqID INT64 NOT NULL
-) PRIMARY KEY (UUID)
-
-```
 -   PlayerMatchHistory
+
+用以紀錄玩家之間的對戰歷史紀錄
 <!--
 |  Column Name	| Column Type 	|Is PK|  Comment 	| 
 |------|------|------|------|
@@ -149,7 +131,7 @@ CREATE TABLE Avators(
 ```sql
 CREATE TABLE PlayerMatchHistory (
     MatchId STRING(36) NOT NULL,
-    PlayerId STRING(10) NOT NULL,
+    PlayerId STRING(64) NOT NULL,
     TargetId STRING(64) NOT NULL,
     MatchTime TIMESTAMP NOT NULL,
     RoomId STRING(36) NOT NULL
@@ -166,16 +148,10 @@ CREATE INDEX IX_PlayerMatchHistory_By_PlayerId_MatchTime_DESC ON PlayerMatchHist
 (
     PlayerId,MatchTime DESC
 )
-STORING (PlayerId, TargetId, DAMAGE, RoomId);
+STORING (TargetId, DAMAGE, RoomId);
 ```
 
-
-
--   Add new Node with Spanner Permission
-
-```shell
-gcloud beta container --project "kalschi-istio" node-pools create "spanner-pool" --cluster "gke2" --region "us-central1" --node-version "1.14.10-gke.37" --machine-type "e2-standard-4" --image-type "COS" --disk-type "pd-standard" --disk-size "100" --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" --num-nodes "1" --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0
-```
+接著執行以下指令部署DATA API
 
 ```shell
 kubectl apply -f ./assests/docker-data-api/configMap.yaml

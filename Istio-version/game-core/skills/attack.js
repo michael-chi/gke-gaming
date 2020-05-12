@@ -37,6 +37,7 @@ module.exports = class Attack{
             if(Math.random() >= 0.2){
                 log('checking skills....',{skills:JSON.stringify(this._me.skills[i])},'test','debug');
                 var result = this._me.skills[i].attack(this._me, target);
+                log('===============',{target:target});
                 this._me.emit('attack', {actor:this._me, skill:this._me._skills[i].name,target:target,result:result.message});
                 return new InGameMessage('*', result.message.message);
             }

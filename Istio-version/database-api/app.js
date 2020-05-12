@@ -148,7 +148,7 @@ app.patch('/players/:id', async function (req, res) {
 //  * Input: models/MatchRecord
 app.post('/matches', async function (req, res) {
     try {
-        log('patch /matches');
+        log('post /matches');
         console.log(req.body);
         var result = await data.NewMatch(req.body);
 

@@ -65,10 +65,9 @@ async function go() {
             var avatars = [];
             for (var i = 0; i < 500; i++) {
                 var tags = [Type1[randomArbitrary(0, Type1.length)], Type2[randomArbitrary(0, Type2.length)],
-                Type3[randomArbitrary(0, Type3.length)], Type4[randomArbitrary(0, Type4.length)]].join(',');
+                            Type3[randomArbitrary(0, Type3.length)], Type4[randomArbitrary(0, Type4.length)]].join(',');
                 var balance = tags.indexOf('SuperBuyer') >= 0 ? randomArbitrary(5, 10) * 1000 :
-                    (tags.indexOf('Buyer') >= 0 ? randomArbitrary(2, 4) * 1000 : 0);
-                //console.log(`Tags:${tags} | Balance:${balance}`);
+                            (tags.indexOf('Buyer') >= 0 ? randomArbitrary(2, 4) * 1000 : 0);
                 const id = random_name().replace(' ', '_').substring(0, 35) + '-' + randomString(10);
                 if (ids.indexOf(id) >= 0)
                     continue;
@@ -79,7 +78,7 @@ async function go() {
                 var user = new Profile(uuid(),
                     id,
                     id + EMAILS[randomArbitrary(0, 4)],
-                    random_name(),
+                    id,
                     balance,
                     randomPhone(),
                     bday,
@@ -95,14 +94,7 @@ async function go() {
 
                 var playerClass = randomArbitrary(0, 3);
                 console.log(`playerClass=${playerClass}`);
-                var avator = new Avator(user.Nickname,
-                    Classes[playerClass],
-                    MaxHP[playerClass],
-                    MaxMP[playerClass],
-                    10,
-                    null,
-                    user.PlayerId,
-                );
+                
                 var avator = new Avator(user.PlayerId, 
                     user.Nickname,
                     Classes[playerClass],

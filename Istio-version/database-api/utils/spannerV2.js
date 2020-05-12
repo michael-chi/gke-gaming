@@ -79,14 +79,14 @@ module.exports = class CloudSpanner {
                     var e = Date.now();
                     log('_runMutation completed',{duration:(e-s)},'_runMutation','debug');
                 } catch (ex) {
-                    log('_runMutation exception (inner)', { error: ex }, 'CloudSpanner.js:_runMutation:runTransaction', 'error');
+                    log('_runMutation exception (inner)', { error: ex,records:records }, 'CloudSpanner.js:_runMutation:runTransaction', 'error');
                     throw ex;
                 }finally{
                     //database.close();    //TODO: should close ?
                 }
             });
         } catch (e) {
-            log('_runMutation exception (outter)', { error: e }, 'CloudSpanner.js:_runMutation', 'error');
+            log('_runMutation exception (outter)', { error: e ,records:records}, 'CloudSpanner.js:_runMutation', 'error');
             throw e;
         } 
     }
@@ -168,7 +168,7 @@ STORING (PlayerId, TargetId, DAMAGE, RoomId);
             };
         var results = await this._querySpanner(query, (row, items) => {
             const json = row.toJSON();
-            items.push(new MatchRecord(json.PlayerId, json.TargetId, json.MatchId, json.ShardId, json.MatchTime).toJson());
+            items.push(new MatchRecord(json.PlayerId, json.TargetId, json.MatchId, json.RoomId, json.DAMAGE, json.MatchTime).toJson());
         });
         console.log(`========>${results}`);
         return results;
@@ -178,8 +178,8 @@ STORING (PlayerId, TargetId, DAMAGE, RoomId);
         var target = [];
         if (records instanceof Array) {
             records.forEach(match =>{
-                if(match.MatchTime){
-                    match.MatchTime = Spanner.timestamp(new Date(match.MatchTime));
+                if(!match.MatchTime){
+                    match.MatchTime = Spanner.timestamp(Date.now());
                 }
                 if(!match.MatchId){
                     match.MatchId = uuid();
@@ -187,7 +187,7 @@ STORING (PlayerId, TargetId, DAMAGE, RoomId);
                 target.push(match);
             })
         } else {
-            records.MatchTime = Spanner.timestamp(new Date(records.MatchTime));
+            records.MatchTime = Spanner.timestamp(Date.now());
             if(!records.MatchId){
                 records.MatchId = uuid();
             }
