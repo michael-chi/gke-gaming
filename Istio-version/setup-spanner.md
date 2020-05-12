@@ -51,22 +51,22 @@ gcloud spanner instances create game-spanner \
 
 ```sql
 CREATE TABLE UserProfile (
-    UUID STRING(36) NOT NULL,           -- UUID for this player, random, for distribution
-    PlayerId STRING(36) NOT NULL,       -- Player readable Id, such as michael-chi
-    Email STRING(64) NOT NULL,
-    Nickname STRING(64) NOT NULL,
-    Balance INT64 ,
-    MobilePhoneNumber STRING(10) NOT NULL,
-    BirthDay TIMESTAMP NOT NULL,
-    HomeAddress STRING(64) NOT NULL,
-    Gender STRING(1) NOT NULL,
-    PasswordHash STRING(64) NOt NULL,
-    Tag STRING(64) ,
-    IsDisable BOOL ,
-    DisableReason STRING(24) ,
-    IsPromoted BOOL ,
-    CreateTime TIMESTAMP NOT NULL,
-) PRIMARY KEY (UUID);
+	UUID STRING(36) NOT NULL,
+	Balance INT64,
+	BirthDay TIMESTAMP NOT NULL,
+	CreateTime TIMESTAMP NOT NULL,
+	DisableReason STRING(24),
+	Email STRING(84) NOT NULL,
+	Gender STRING(1) NOT NULL,
+	HomeAddress STRING(64) NOT NULL,
+	IsDisable BOOL,
+	IsPromoted BOOL,
+	MobilePhoneNumber STRING(16) NOT NULL,
+	Nickname STRING(64) NOT NULL,
+	PasswordHash STRING(64) NOT NULL,
+	PlayerId STRING(64) NOT NULL,
+	Tag STRING(64),
+) PRIMARY KEY (UUID)
 
 CREATE TABLE TransactionHistory(
     UUID STRING(36) NOT NULL,  
@@ -77,11 +77,38 @@ CREATE TABLE TransactionHistory(
     StoreChannelID STRING(36) NOT NULL
 ) PRIMARY KEY (UUID)
 
-CREATE INDEX IX_PlayerProfileInGame_By_PlayerId ON UserProfile
-(
+
+CREATE INDEX IX_PlayerProfileInGame_By_PlayerId 
+ON UserProfile (
     PlayerId
+) STORING (
+    Email,
+    Nickname,
+    Balance,
+    IsDisable,
+    IsPromoted,
+    Tag,
+    DisableReason
 )
-STORING (Email, Nickname, Balance, IsDisable, IsPromoted, Tag, DisableReason);
+CREATE INDEX IX_PlayerProfileOffGame_By_PlayerId 
+ON UserProfile (
+    PlayerId
+) STORING (
+    Email,
+    Nickname,
+    Balance,
+    MobilePhoneNumber,
+    BirthDay,
+    HomeAddress,
+    Gender,
+    PasswordHash,
+    IsDisable,
+    DisableReason,
+    IsPromoted,
+    CreateTime
+)
+
+
 
 CREATE INDEX IX_TransactionHistory_By_PlayerId On TransactionHistory
 (
@@ -89,13 +116,26 @@ CREATE INDEX IX_TransactionHistory_By_PlayerId On TransactionHistory
 )
 STORING(PurchasedItemID, PurchasedQuantity, StoreChannelID)
 
-CREATE INDEX IX_PlayerProfileOffGame_By_PlayerId On UserProfile
-(
-    PlayerId
-)
-STORING (Email, Nickname, Balance, MobilePhoneNumber, BirthDay, HomeAddress, Gender, PasswordHash, IsDisable, DisableReason, IsPromoted, CreateTime)
 ```
+-   Avator
+```sql
 
+CREATE TABLE Avators(
+    UUID STRING(36) NOT NULL,  
+    PlayerId STRING(36) NOT NULL,    
+    HP INT64 NOT NULL,
+    MP INT64 NOT NULL,
+    MAX_HP INT64, NOT NULL,
+    MAX_MP INT64 NOT NULL,
+    PlayerClass STRING(12) NOT NULL,
+    PlayerLevel INT64 NOT NULL,
+    IsOnline BOOL NOT NULL,
+    CreateTime TIMESTAMP NOT NULL,
+    Tags STRING(128) NOT NULL,
+    SeqID INT64 NOT NULL
+) PRIMARY KEY (UUID)
+
+```
 -   PlayerMatchHistory
 <!--
 |  Column Name	| Column Type 	|Is PK|  Comment 	| 

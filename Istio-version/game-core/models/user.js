@@ -1,4 +1,3 @@
-const InGameMessage = require('../utils/inGameMessage');
 const { uuid } = require('uuidv4');
 var Emitter = require('events').EventEmitter;
 //const GameEventHandler = require('../utils/gameEventHandler');
@@ -11,19 +10,29 @@ const CONSTS = require('./Consts');
 
 
 class User {
-    constructor(name, playerClass, hp, mp, lv, skills, id) {
-        this._id = id ? id : uuid();
+    constructor(playerId, name, playerClass, hp, mp, lv, skills, id, createTime, lastLoginTime) {
+        this._playerId = playerId;
+        this._uuid = id ? id : uuid();
         this._name = name;
         this._class = playerClass;
         this._hp = hp;
+        this._maxHp = hp;
         this._mp = mp;
+        this._maxMp = mp;
         this._lv = lv;
         this._state = CONSTS.PlayerState.STATE_NORMAL;
         this._skills = null;//[new Firebolt(), new Smash()];
         this._isOnline = false;
         this.emit('new', this);
-        this._lastLoginTime = null;
+        this._lastLoginTime = lastLoginTime;
+        this._createTime = createTime;
     }
+    get maxHp(){return this._maxHp;}
+    get maxMp(){return this._maxMp;}
+    set maxHp(value){this._maxHp = value;}
+    set maxMp(value){this._maxMp = value;}
+    get createTime(){return this._createTime;}
+    set createTime(value){this._createTime = value;}
     get lastLoginTime(){return this._lastLoginTime;}
     set lastLoginTime(value){this._lastLoginTime = value;}
     get isOnline(){return this._isOnline;}
@@ -45,7 +54,8 @@ class User {
     }
     resurrection(){
         this._state = CONSTS.PlayerState.STATE_NORMAL;
-        this._hp = 200;
+        this._hp = this._maxHp;
+        this._mp = this._maxMp;
 
         this.emit('resurrection', this);
     }
@@ -74,8 +84,14 @@ class User {
     //     }
     //     return new InGameMessage('*', `${this._self.name} stands still...`);
     // }
-    get id(){
-        return this._id;
+    get playerId(){
+        return this._playerId;
+    }
+    set playerId(value){
+        this._playerId = value;
+    }  
+    get UUID(){
+        return this._uuid;
     }
     get name (){
         if (this._name) {
@@ -116,9 +132,15 @@ class User {
         this.emit('mp', {actor:this,value:value});
         this._mp = value;
     }
+    get tags(){return this._tags;}
+    set tags(value){this._tags = value;}
+
     toJson(){
         return {
-            id: this._id,
+            UUID: this._uuid,
+            maxHp: this._maxHp,
+            maxMp: this._maxMp,
+            playerId: this._playerId,
             hp: this._hp,
             mp: this._mp,
             playerLv: this._lv,
@@ -126,7 +148,9 @@ class User {
             name: this._name,
             state: this._state,
             isOnline: this._isOnline,
-            lastLoginTime: this._lastLoginTime
+            lastLoginTime: this._lastLoginTime,
+            tags: this._tags,
+            createTime: this._createTime
         };
     }
     toString(){

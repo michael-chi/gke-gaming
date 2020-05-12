@@ -23,7 +23,7 @@ app.get('/', function (req, res) {
 //  * Input: modules/PlayerProfile
 app.get('/profiles/:id', async function (req, res) {
     try {
-        log('get /profiles/:id');
+        log('get /profiles/:id',{id:req.params.id});
         var user = await data.ReadPlayerProfile(req.params.id);
         res.send({ status: 'ok', data: user });
     } catch (e) {
@@ -109,7 +109,7 @@ app.patch('/gameservers/:id', function (req, res) {
 //  * Input: models/user
 app.get('/players/:id', async function (req, res) {
     try {
-        log('get /players/:id');
+        log('get /players/:id',{id:req.params.id});
         var player = await data.EnsurePlayer(req.params.id);
 
         res.send({ status: 'ok', data: player });

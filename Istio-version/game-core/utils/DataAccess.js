@@ -36,9 +36,6 @@ module.exports = class DataAccess {
             let resp = await getJSON(`${this._dataApi}/${uri}`);
             return resp;
         });
-        const getJSON = bent('json');
-        let resp = await getJSON(`${this._dataApi}/${uri}`);
-        return resp;
     }
     async patch(uri, data){
         return await this._exec('get',data, async (d) => {
@@ -83,7 +80,23 @@ module.exports = class DataAccess {
         try{
             const resp = await this.get(`players/${playerId}`);
             const player = resp.data;
-            return new User(player.name, player.playerClass, player.hp, player.mp, player.playerLv, null, player.id);
+            log('EnsurePlayer REST API result',{playerId:playerId,player:player},'','debug');
+            //return Object.assign(new User(), player);//new User(player.name, player.playerClass, player.hp, player.mp, player.playerLv, null, player.id);
+            var user = new User(
+                player.playerId,
+                player.name,
+                player.playerClass,
+                player.hp,
+                player.mp,
+                player.playerLv,
+                player.skills,
+                player.UUID,
+                player.createTime,
+                player.lastLoginTime
+            );
+            user.tags = player.tags;
+            user.isOnline = true;
+            return user;
         }catch(ex){
             log('error EnsurePlayer',{error:ex, playerId:playerId}, 'DataAccess:EnsuerPlayer','error');
             return null;

@@ -6,14 +6,6 @@ function getFirestore(projectId) {
     log(`local mode is ${config.LOCAL_MODE}`);
     const Firestore = require('./firestore_datastore');
     return new Firestore();
-    if (config.LOCAL_MODE) {
-        log('mocking firestore');
-        const mock = require('./mock/firestore_native');
-        return new mock();
-    } else {
-        const Firestore = require('./firestore_datastore');
-        return new Firestore(projectId);
-    }
 }
 
 function getSpanner() {
@@ -84,8 +76,8 @@ module.exports = class DataAccess {
         try {
             const player = await getFirestore().getPlayer(playerId);
             if (player) {
-                log('EnsurePlayer succeed', {playerId:player.toJson()},'DataAccess:EnsuerPlayer','info');
-                return player.toJson();
+                log('EnsurePlayer succeed', {playerId:player},'DataAccess:EnsuerPlayer','info');
+                return player;
             } else {
                 return null;
             }

@@ -20,8 +20,8 @@ module.exports = class Room
         return Array.from(this._players.keys());
     }
     join(user){
-        this._players.set(user.id, user);
-        this._broadcast('*',`Yo! ${user.name} just joined this match.`);
+        this._players.set(user.playerId, user);
+        this._broadcast('*',`Yo! ${user.name}(${user.playerId}) just joined this match.`);
     }
     leave(user){
         this._broadcast('*',`Yo! ${user.name} just leave this match.`);

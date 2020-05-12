@@ -119,16 +119,18 @@ class FirestoreDatastore {
             path: ['players', playerId]
         });
         var user = await this.datastore.get(key);
-        
         if (user && user.length > 0) {
-            var resp = new User(user[0].name,
-                user[0].playerClass,
-                user[0].hp,
-                user[0].mp,
-                user[0].playerLv,
-                null,
-                user[0].id
-            );
+            return user[0];
+            //var resp = Object.assign(new User(),user[0]);
+            // var resp = new User(user[0].playerId,
+            //     user[0].name,
+            //     user[0].playerClass,
+            //     user[0].hp,
+            //     user[0].mp,
+            //     user[0].playerLv,
+            //     null,
+            //     user[0].id
+            // );
             //log('===>>>',{user:resp},'','');
             return resp;
         } else {
@@ -156,20 +158,38 @@ class FirestoreDatastore {
         });
 
     }
-    async upsertPlayer(player) {
+    _convertToEntity(item, namespace, path, getId){
         const taskKey = this.datastore.key({
-            namespace: 'mud',
-            path: ['players', player.id]
+            namespace: namespace,
+            path: [path, getId(item)]
         });
-
         const entity = {
             key: taskKey,
-            data: player
+            data: item
         };
-
+        return entity;
+    }
+    _convertToEntities(items, namespace, path, getId){
+        var target = [];
+        if (items instanceof Array) {
+            items.forEach(item => {
+                const entity = this._convertToEntity(item, namespace, path, getId);
+                target.push(entity);
+            });
+        } else {
+            const entity = this._convertToEntity(items, namespace, path, getId);
+            target.push(entity);
+        }
+        return target;
+    }
+    async upsertPlayer(player) {
+        //TODO:
+        var target = this._convertToEntities(player, 'mud', 'players', (item) => item.playerId);
+        console.log('=========');
+        console.log(JSON.stringify(target));
         try {
-            await this.datastore.save(entity);
-            log(`Player ${player.id} created successfully.`, {player:player}, 'firestore_datastore.js:upsertPlayer()', 'info');
+            await this.datastore.save(target);
+            log(`Player ${player.playerId} created successfully.`, {player:player}, 'firestore_datastore.js:upsertPlayer()', 'info');
         } catch (err) {
             log('ERROR:', { error: err }, 'firestore_datastore.js:upsertPlayer()', 'error');
 

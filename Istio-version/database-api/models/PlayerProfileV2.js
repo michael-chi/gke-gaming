@@ -35,11 +35,14 @@ class PlayerProfile {
         this.DisableReason = disableReason;
         this.IsPromoted = isPromoted;
         this.CreateTime = createTime;
+        this.MobilePhoneNumber = phone;
+        this.BirthDay = birthday;
+        this.Balance = balance;
     }
     
     
     toString(){
-        return `==================\r\n[${this.UUID}]${this.PlayerId}\t (${this.Gender})\r\n--------------\r\nEmail: ${this.Nickname}(${this.Email})\r\Created at:${this.CreateTime}\r\nIs Disabled:${this.IsDisable}(${this.DisableReason})\r\n==================`;
+        return `[${this.UUID}]${this.PlayerId}\t[${this.Nickname}](${this.Gender})\r\nBirthday:${this.BirthDay}\r\n(${this.Email})\t${this.MobilePhoneNumber}\r\nCreated at:${this.CreateTime}\r\nIs Disabled:${this.IsDisable}(${this.DisableReason})\r\n`;
     }
 
     toJson(){
