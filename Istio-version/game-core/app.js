@@ -9,7 +9,7 @@ const log = require('./utils/logger');
 const DataAPI = require('./utils/DataAccess');
 
 const dataApi = new DataAPI();
-const serverPort = 11111,
+const serverPort = 11112,
     http = require("http"),
     express = require("express"),
     app = express(),
@@ -87,7 +87,7 @@ websocketServer.on('connection', async (ws, req) => {
                             return room.players.get(name);
                         },
                         room);
-                    var msg = factory.do(message);
+                    var msg = await factory.do(message);
                     if (msg) {
                         room.broadcast(msg.notifyUser, msg.message);
                     }

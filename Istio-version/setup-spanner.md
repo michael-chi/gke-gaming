@@ -151,6 +151,39 @@ CREATE INDEX IX_PlayerMatchHistory_By_PlayerId_MatchTime_DESC ON PlayerMatchHist
 STORING (TargetId, DAMAGE, RoomId);
 ```
 
+-   建立一個商店庫存Table
+
+```sql
+CREATE TABLE ShopInventory (
+    ItemID STRING(36) NOT NULL,
+    ItemDesc STRING(64),
+    ItemName STRING(24) NOT NULL,
+    ItemType STRING(24) NOT NULL,
+    Price INT64 NOT NULL,
+    IsPromotion BOOL,
+    IsEnabled BOOL NOT NULL,
+    CreateTime TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+) PRIMARY KEY (ItemID)
+
+CREATE INDEX IX_ShopInventory_By_IsEnabledAndPromotion On ShopInventory(
+    IsEnabled, IsPromotion
+)STORING(Price, ItemName, ItemType)
+
+CREATE TABLE UserInventory (
+    UUID STRING(36) NOT NULL,
+    ItemID STRING(24) NOT NULL,
+    PurchaseDate TIMESTAMP NOT NULL,
+    ItemName STRING(24),
+    PurchasePrice INT64 NOT NULL,
+    Quantity INT64 NOT NULL,
+) PRIMARY KEY (UUID, ItemID),
+INTERLEAVE IN PARENT UserProfile ON DELETE CASCADE
+```
+
+然後建立一個玩家身上的物品清單表
+
+```shell
+```
 接著執行以下指令部署DATA API
 
 ```shell

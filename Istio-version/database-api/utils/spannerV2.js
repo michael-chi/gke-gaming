@@ -71,24 +71,24 @@ module.exports = class CloudSpanner {
                     return;
                 }
                 try {
-                    target.forEach(item =>{
+                    target.forEach(item => {
                         callback(item, transaction);
                     }
                     );
                     await transaction.commit();
                     var e = Date.now();
-                    log('_runMutation completed',{duration:(e-s)},'_runMutation','debug');
+                    log('_runMutation completed', { duration: (e - s) }, '_runMutation', 'debug');
                 } catch (ex) {
-                    log('_runMutation exception (inner)', { error: ex,records:records }, 'CloudSpanner.js:_runMutation:runTransaction', 'error');
+                    log('_runMutation exception (inner)', { error: ex, records: records }, 'CloudSpanner.js:_runMutation:runTransaction', 'error');
                     throw ex;
-                }finally{
+                } finally {
                     //database.close();    //TODO: should close ?
                 }
             });
         } catch (e) {
-            log('_runMutation exception (outter)', { error: e ,records:records}, 'CloudSpanner.js:_runMutation', 'error');
+            log('_runMutation exception (outter)', { error: e, records: records }, 'CloudSpanner.js:_runMutation', 'error');
             throw e;
-        } 
+        }
     }
     async _querySpanner(query, callback) {
         try {
@@ -98,16 +98,16 @@ module.exports = class CloudSpanner {
             const [rows] = await database.run(query);
 
             var e = Date.now();
-            log(`_querySpanner result`,{rows:rows,time:(e-s)},'_querySpanner','info');
+            log(`_querySpanner result`, { rows: rows, time: (e - s) }, '_querySpanner', 'info');
             var results = [];
             rows.forEach(
                 row => callback(row, results)
             );
-            if(results.length == 1){
+            if (results.length == 1) {
                 return results[0];
-            }else if(results.length > 0){
+            } else if (results.length > 0) {
                 return results;
-            }else return null;
+            } else return null;
         } catch (err) {
             log(`error _querySpanner`, { error: err, query: query }, "spanner.js:_querySpanner", "info");
             throw err;
@@ -115,16 +115,9 @@ module.exports = class CloudSpanner {
             //await database.close();   //TODO: should close ?
         }
     }
-    
-    
-    /*
-    CREATE INDEX IX_PlayerProfileInGame_By_PlayerId ON UserProfile
-(
-    PlayerId
-)
-STORING (Email, Nickname, Balance, IsDisable, IsPromoted, Tag, DisableReason);
 
-    */
+
+
     async readUserProfiles(playerId) {
         var query = null;
         if (playerId)
@@ -142,20 +135,27 @@ STORING (Email, Nickname, Balance, IsDisable, IsPromoted, Tag, DisableReason);
                 items.push(json);
                 //items.push(new PlayerProfileV2(json.PlayerId, json.Email, json.Nickname, json.LastLoginTime, json.IsOnLine, json.ShardId).toJson());
             });
-            log('readUserProfile results',{results:results},'readUserProfile','debug');
+            log('readUserProfile results', { results: results }, 'readUserProfile', 'debug');
             return results;
         } catch (err) {
             log(`unable to read user profile`, { error: err, playerId: playerId }, "spanner.js:readUserProfiles", "info");
             throw err;
         }
     }
-    /*
-CREATE INDEX IX_PlayerMatchHistory_By_PlayerId_MatchTime_DESC ON PlayerMatchHistory
-(
-    playerId,MatchTime DESC
-)
-STORING (PlayerId, TargetId, DAMAGE, RoomId);
-    */
+    async listShopItems() {
+        var query = null;
+        query = {
+            sql: `SELECT ItemName, ItemDesc, ItemType, Price, IsEnabled, IsPromotion FROM ShopInventory@{force_index=IX_ShopInventory_By_IsEnabledAndPromotion} where IsEnabled=true`,
+        };
+
+        var results = await this._querySpanner(query, (row, items) => {
+            const json = row.toJSON();
+            items.push(json);
+        });
+        console.log(`========>${results}`);
+        return results;
+
+    }
     async readMatch(id) {
         var query = null;
         if (id)
@@ -172,23 +172,55 @@ STORING (PlayerId, TargetId, DAMAGE, RoomId);
         });
         console.log(`========>${results}`);
         return results;
-        
+
     }
+    async newShopItems(items) {
+        var target = [];
+        if (items instanceof Array) {
+            items.forEach(item => {
+                if (!item.CreateTime) {
+                    item.CreateTime = Spanner.timestamp(Date.now());
+                }
+                if (!item.ItemID) {
+                    item.ItemID = uuid();
+                }
+                target.push(item);
+            })
+        } else {
+            item.CreateTime = Spanner.timestamp(Date.now());
+            if (!item.ItemID) {
+                item.ItemID = uuid();
+            }
+            target.push(v);
+        }
+        try {
+            await this._runMutation(target,
+                async (item, tx) => {
+                    await tx.insert('ShopInventory', item);
+                });
+            return target;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        } finally {
+        }
+    }
+
     async newMatch(records) {
         var target = [];
         if (records instanceof Array) {
-            records.forEach(match =>{
-                if(!match.MatchTime){
+            records.forEach(match => {
+                if (!match.MatchTime) {
                     match.MatchTime = Spanner.timestamp(Date.now());
                 }
-                if(!match.MatchId){
+                if (!match.MatchId) {
                     match.MatchId = uuid();
                 }
                 target.push(match);
             })
         } else {
             records.MatchTime = Spanner.timestamp(Date.now());
-            if(!records.MatchId){
+            if (!records.MatchId) {
                 records.MatchId = uuid();
             }
             target.push(records);
@@ -210,24 +242,24 @@ STORING (PlayerId, TargetId, DAMAGE, RoomId);
         var target = [];
         if (players instanceof Array) {
             players.forEach(
-                player =>{
-                    if(!player.UUID){
+                player => {
+                    if (!player.UUID) {
                         player.UUID = uuid();
                     }
-                    if(!player.CreateTime){
+                    if (!player.CreateTime) {
                         player.CreateTime = Spanner.timestamp(Date.now());
                     }
                     target.push(player)
                 }
             )
         } else {
-            if(!players.UUID){
+            if (!players.UUID) {
                 players.UUID = uuid();
             }
-            if(!players.CreateTime){
+            if (!players.CreateTime) {
                 players.CreateTime = Spanner.timestamp(Date.now());
             }
-            log('=============================',{player:players},'','');
+            log('=============================', { player: players }, '', '');
             target.push(players);
         }
         try {
@@ -243,12 +275,12 @@ STORING (PlayerId, TargetId, DAMAGE, RoomId);
             throw e;
         }
     }
-    
+
     async updateUserProfiles(profile) {
         var target = [];
         if (profile instanceof Array) {
             profile.forEach(
-                player =>{
+                player => {
                     target.push(player.toJson()
                     )
                 }
@@ -262,7 +294,7 @@ STORING (PlayerId, TargetId, DAMAGE, RoomId);
                     await tx.update('UserProfile', match);
                 });
             return profile;
-            
+
         } catch (e) {
             console.log('==========================================');
             console.log(e);

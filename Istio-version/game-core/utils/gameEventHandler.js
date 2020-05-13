@@ -23,9 +23,10 @@ async function handle(room, user, data) {
 async function handleMatchEvent(room, user, data) {
     //{actor:this._me, skill:this._me._skills[i].name,target:target,result:result}
     await dataApi.UpdatePlayer(user);
-    log('match event:' + data.event,{data:data},'gaemEventHandler','debug');
-    
-    await dataApi.NewMatch(new MatchRecord(user.playerId, data.result.target._playerId,uuid(),room.roomId, Date.now()));
+    log('match event:' + data.event,{damage:data.result.result.damage,data:data},'gaemEventHandler','debug');
+    const match = new MatchRecord(user.playerId, data.result.target._playerId, uuid(),room.roomId, data.result.result.damage ,`${Date.now()}`);
+    log('================',{match:match});
+    await dataApi.NewMatch(match);
 }
 module.exports = class GameEventHandler {
     
@@ -41,6 +42,7 @@ module.exports = class GameEventHandler {
                 });
             } else {
                 room.players.forEach(ppl => {
+                    log(`CHECKING ${ppl.name} with ${name}`,{},'','');
                     if (ppl.name == name) {
                         CLIENTS.get(ppl.name).send(message);
                         dataApi.updateWorldwideMessages(ppl.name, ppl.name, message);

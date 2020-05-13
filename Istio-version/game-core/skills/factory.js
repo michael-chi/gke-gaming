@@ -6,7 +6,7 @@ module.exports = class SkillManager {
         this.player = issuer;
         this._room = room;
     }
-    do(cmd){
+    async do(cmd){
         var fragments = cmd.split(' ');
         var target = fragments.length > 1 ? fragments[1]: null;
         var skill = fragments[0];
@@ -34,7 +34,6 @@ module.exports = class SkillManager {
             log('player skill',{player:this.player.name,skill:skill.name, target:target, original:cmd}, 'SkillManager:do', 'info');
         }
         if(skill.attack){
-            
             if(target){
                 victim = this.findPlayerFunc(target);
             }
@@ -46,17 +45,18 @@ module.exports = class SkillManager {
                 log('attack',{player:this.player.name,skill:skill.name, target:target, original:cmd, message:'no target'}, 'SkillManager:do', 'info');
                 return new InGameMessage(this.player.name,`who are you looking at ?`);
             }
-        }
-
-        if(skill.describe){
+        }else if(skill.describe){
             if(target){
                 victim = this.findPlayerFunc(target);
             }
             console.log(`${this.player}`);
             log('describe',{player:this.player.name,skill:skill.name, target:target, original:cmd, message:'no target'}, 'SkillManager:do', 'info');
             return skill.describe(this.player, victim);
+        }else if(skill.command){
+            var msg = await skill.command(fragments);
+            return new InGameMessage(this.player.name, msg);
         }
 
-        return null;
+        return new InGameMessage(this.player.name,`[Game Driver]what do you want to do ?`);
     }
 }

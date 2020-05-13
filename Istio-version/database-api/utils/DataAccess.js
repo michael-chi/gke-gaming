@@ -42,6 +42,7 @@ module.exports = class DataAccess {
         }
 
     }
+
     async ReadPlayerProfile(id) {
         return await this._exec('ReadPlayerProfile', async () => {return await getSpanner().readUserProfiles(id);});
     }
@@ -67,6 +68,15 @@ module.exports = class DataAccess {
             log('error NewMatch',{error:e},'NewMatch','debug');
             throw e;
         }
+
+    }
+    async NewShopItems(items){
+        return await this._exec('ShopInventory', async () => {return await getSpanner().newShopItems(items);});
+    }
+    async ListShopItems(){
+        return await this._exec('ShopInventory', async () => {return await getSpanner().listShopItems();});
+    }
+    async BuyShopItem(itemId, quantity){
 
     }
     //==============================

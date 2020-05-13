@@ -45,11 +45,6 @@ module.exports = class DataAccess {
             var body = (await resp.json()).data;
             return body;
         });
-        log('patch.........',{data:data},'','debug');
-        const patch = bent(`${this._dataApi}`, 'PATCH', { 'content-type': 'application/json' });
-        let resp = await patch(`/${uri}`,data);
-        var data = (await resp.json()).data;
-        return resp;
     }
     //==============================
     //  Spanner
@@ -72,6 +67,17 @@ module.exports = class DataAccess {
         var resp = await this.post('matches', record.toJson());
 
         return resp;
+    }
+    async ListShopItems(){
+        var resp = await this.get('shop_items');
+        if(resp.status == 'ok'){
+            return resp.data;
+        }else{
+            return null;
+        }
+    }
+    async BuyShopItem(itemId, quantity){
+        return await this.post('shop_items');
     }
     //==============================
     //  Firestore

@@ -8,7 +8,7 @@ var standard_input = process.stdin;
 standard_input.setEncoding('utf-8');
 
 //var host = "ws://35.200.25.9/";
-var host = "ws://127.0.0.1:11111/";
+var host = "ws://127.0.0.1:11112/";
 //var host = "127.0.0.1:9999";
 //var host = "game.michaelchi.net";
 

@@ -159,14 +159,40 @@ app.post('/matches', async function (req, res) {
     }
 
 });
-// app.patch('/matches', async function(req,res){
-//     log('post /matches');
-//     console.log(req.body);
-//     var result = await data.NewMatch(req.body);
+//====  Shop
+app.get('/shop_items', async function(req, res){
+    try {
+        log('get /shop_items');
+        var result = await data.ListShopItems();
+        log('get shop_items result',{result:result},'','debug');
+        res.send({ status: 'ok', data: result });
+    } catch (e) {
+        log('error get /shop_items', { error: e }, 'get /shop_items', 'debug');
+        throw e;
+    }
+});
 
-//     res.send({status:'ok',data:result});
-// });
+app.post('/shop_items', async function(req, res){
+    //  Buy item
+    /*
+        {
+            PlayerID:'',
+            IteemID:'',
+            Quantity:''
+        }
+    */
+    try {
+        log('post /shop_items/', { body: req.body });
+        await data.NewShopItems(req.body);
 
+        res.send({ status: 'ok' });
+    } catch (e) {
+        log('error post /shop_items', { error: e }, '', '');
+        throw e;
+    }
+});
+
+//====  Match
 app.get('/matches/:id', async function (req, res) {
     try {
         log('post /matches');
