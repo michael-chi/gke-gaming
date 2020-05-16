@@ -76,19 +76,7 @@ module.exports = class DataAccess {
     async ListShopItems(){
         return await this._exec('ShopInventory', async () => {return await getSpanner().listShopItems();});
     }
-    async BuyShopItem(plauerId, itemId, quantity){
-        //  1. Check user balance
-        //  2. Calculate new balance and update UserProfile
-        //  3. update Inventory table
-        //  4. update transaction-histor table
-        return await this._exec('BuyShopItem', async() =>{
-            return await getSpanner()._runTransactions(
-                () => {
-                    
-                }
-            );
-        });
-    }
+    
     //==============================
     //  Firestore
     //==============================

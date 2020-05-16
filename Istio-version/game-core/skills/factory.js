@@ -16,7 +16,7 @@ module.exports = class SkillManager {
         try{
             Skill = eval(`require('./${skill}');`);
         }catch(ex){
-            log(`cannot find skill ${skill}`,{command:cmd,player:this.player.id},'SkillManager:do','error');
+            log(`cannot find skill ${skill}`,{ex:ex},'SkillManager:do','error');
             Skill = null;
         }
         

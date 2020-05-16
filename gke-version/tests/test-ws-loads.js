@@ -7,7 +7,7 @@ const readline = require('readline').createInterface({
 var standard_input = process.stdin;
 standard_input.setEncoding('utf-8');
 
-var host = process.env.HOST || "34.102.250.216";
+var host = process.env.HOST || "34.80.239.146";
 //var host = "127.0.0.1:9999";
 var current = '';
 const reg = /HP:([\d]*)/g;

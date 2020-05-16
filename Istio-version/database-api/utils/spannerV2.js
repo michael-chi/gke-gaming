@@ -53,34 +53,39 @@ module.exports = class CloudSpanner {
             throw e;
         }
     }
-    async _runTransactions(options, callback) {
-        var database = null;
-        try {
-            database = this.getSpannerDatabase();
-            database.runTransaction(async (err, transaction) => {
-                var s = Date.now();
-                if (err) {
-                    console.log(err);
-                    log('error _runTransactions', { error: err, match: records }, 'CloudSpanner.js:_runTransactions', 'error');
-                    return;
-                }
-                try {
-                    callback(options, transaction);
-                    //await transaction.commit();
-                    var e = Date.now();
-                    log('_runTransactions completed', { duration: (e - s) }, '_runTransactions', 'debug');
-                } catch (ex) {
-                    log('_runTransactions exception (inner)', { error: ex, records: records }, 'CloudSpanner.js:_runTransactions:runTransaction', 'error');
-                    throw ex;
-                } finally {
-                    //database.close();    //TODO: should close ?
-                }
-            });
-        } catch (e) {
-            log('_runTransactions exception (outter)', { error: e, records: records }, 'CloudSpanner.js:_runTransactions', 'error');
-            throw e;
-        }
+    async _runTransactionsEx(options, callback) {
+        return new Promise((res, rej) => {
+            var database = null;
+            try {
+                database = this.getSpannerDatabase();
+                database.runTransaction(async (err, transaction) => {
+                    var s = Date.now();
+                    var result = null;
+                    if (err) {
+                        console.log(err);
+                        log('error _runTransactions', { error: err, match: records }, 'CloudSpanner.js:_runTransactions', 'error');
+                        return rej(err);
+                    }
+                    try {
+                        result = callback(options, transaction);
+                        //await transaction.commit();
+                        var e = Date.now();
+                        log('_runTransactions completed', { duration: (e - s) }, '_runTransactions', 'debug');
+                    } catch (ex) {
+                        log('_runTransactions exception (inner)', { error: ex, options: options }, 'CloudSpanner.js:_runTransactions:runTransaction', 'error');
+                        throw ex;
+                    } finally {
+                        //database.close();    //TODO: should close ?
+                        return res(result);
+                    }
+                });
+            } catch (e) {
+                log('_runTransactions exception (outter)', { error: e, records: records }, 'CloudSpanner.js:_runTransactions', 'error');
+                return rej(e);
+            }
+        });
     }
+    
     async _runMutation(records, callback) {
         var target = [];
         if (records instanceof Array) {
@@ -213,11 +218,11 @@ module.exports = class CloudSpanner {
                 target.push(item);
             })
         } else {
-            item.CreateTime = Spanner.timestamp(Date.now());
-            if (!item.ItemID) {
-                item.ItemID = uuid();
+            items.CreateTime = Spanner.timestamp(Date.now());
+            if (!items.ItemID) {
+                items.ItemID = uuid();
             }
-            target.push(v);
+            target.push(items);
         }
         try {
             await this._runMutation(target,
@@ -231,37 +236,98 @@ module.exports = class CloudSpanner {
         } finally {
         }
     }
-    /*
     //  TODO:
-    async BuyShopItem(playerUUID, itemId, quantity){
+    async BuyShopItem(playerUUID, itemID, quantity) {
         //  1. Check user balance
         //  2. Calculate new balance and update UserProfile
         //  3. update Inventory table
         //  4. update transaction-histor table
-        return await this._exec('BuyShopItem', async() =>{
-            await this._runTransactions(opt,
+        //return await this._exec('BuyShopItem', async () => 
+        {
+            return await this._runTransactionsEx(
+                {
+                    playerUUID: playerUUID,
+                    itemID: itemID,
+                    quantity: quantity
+                },
                 async (options, tx) => {
-                    tx.read('UserProfile', {
-                        columns: ['Balance'],
-                        keys:[options.playerUUID]
-                    }).then(results =>{
-                        const rows = results[0].map(row => row.toJSON());
-                        var blanace = rows[0].Balance;
-                        if(balance > 0 && balance >= options.cost){
-                            //  purchased
-                            var newBalance = balance - options.cost;
-                            await txn.runUpdate({
-                                
-                            })
-                        }else{
-                            //  No transaction can be made
+                    const [upResults] = await tx.read('UserProfile', {
+                        columns: ['UUID', 'Balance', 'PlayerId'],
+                        keys: [playerUUID]
+                    });
+                    const [siResults] = await tx.read('ShopInventory', {
+                        columns: ['Price', 'ItemName'],
+                        keys: [itemID]
+                    });
+                    console.log(`upResults=${JSON.stringify(upResults)}`);
+                    const user = upResults[0].toJSON();
+                    const item = siResults[0].toJSON();
+                    var playerId = user.PlayerId;
+                    var balance = user.Balance;
+                    var cost = parseInt(item.Price) * quantity;
+
+                    if (balance >= cost) {
+                        var newBalance = balance - cost;
+                        const opt = {
+                            keys: [
+                                ['UUID', playerUUID],
+                                ['ItemID', itemID]
+                            ],
+                            columns: ['Quantity']
+                        };
+                        //const [uiResults] = await tx.read('UserInventory', opt);
+                        const [uiResults] = await tx.run({
+                            sql: 'SELECT u.UUID, u.PlayerId, u.Balance, s.ItemID, s.Quantity FROM UserProfile u join UserInventory s on u.UUID = s.UUID where u.UUID=@uuid',
+                            params: {
+                                uuid: playerUUID
+                            }
+                        });
+                        console.log(`============ ${JSON.stringify(uiResults[0])} ==========`);
+                        if (uiResults && uiResults.length > 0) {
+                            console.log('============ EXISTING PURCHASE ==========');
+                            var newRecord = {
+                                UUID: playerUUID,
+                                ItemID: itemID,
+                                ItemName: item.ItemName,
+                                PurchaseDate: Spanner.timestamp(Date.now()),
+                                PurchasePrice: parseInt(item.Price),
+                                Quantity: quantity + uiResults[0].toJSON().Quantity
+                            };
+                            console.log(JSON.stringify(newRecord));
+                            tx.upsert('UserInventory', newRecord);
+                        } else {
+                            console.log('============ NEW PURCHASE ==========');
+                            tx.upsert('UserInventory', {
+                                UUID: playerUUID,
+                                ItemID: itemID,
+                                ItemName: item.ItemName,
+                                PurchaseDate: Spanner.timestamp(Date.now()),
+                                PurchasePrice: parseInt(item.Price),
+                                Quantity: quantity
+                            });
                         }
-                    })
+                        tx.insert('TransactionHistory', {
+                            PlayerId: playerId,
+                            UUID: uuid(),
+                            PurchasedItemID: itemID,
+                            PurchasedQuantity: quantity,
+                            StoreChannelID: 'Online',
+                            TransactionTime: Spanner.timestamp(Date.now())
+                        });
+                        tx.update('UserProfile', {
+                            UUID: playerUUID,
+                            Balance: newBalance
+                        });
+                        tx.commit();
+                        return true;
+                    } else {
+                        tx.end();
+                        return false;
+                    }
                 }
             );
-        });
+        }
     }
-    */
     async newMatch(records) {
         var target = [];
         if (records instanceof Array) {

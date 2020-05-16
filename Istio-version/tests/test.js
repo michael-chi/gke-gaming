@@ -1,2 +1,1 @@
-var test =['zz2','aaa','aab'];
-console.log(test.sort());
+require('../game-core/skills/shop');

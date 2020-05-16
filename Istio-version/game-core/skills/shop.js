@@ -1,6 +1,8 @@
 const InGameMessage = require('../utils/inGameMessage.js');
 const CONSTS = require('../models/Consts');
 const log = require('../utils/logger');
+const DB = require('../utils/DataAccess');
+
 module.exports = class Shop{
     constructor(me){
         this._name = 'shop';
@@ -16,6 +18,7 @@ module.exports = class Shop{
     static IsSystem(){return false;}
 
     async command(fragments){
+        const db = new DB();
         //  Supported commnads:
         //  - shop list
         //      * list available items currently on sale
@@ -23,8 +26,6 @@ module.exports = class Shop{
         //      * buy item from shop owner
         switch(fragments[1]){
             case 'list':
-                const DB = require('../utils/DataAccess');
-                const db = new DB();
                 var items = await db.ListShopItems();
                 var text = [];
                 items.forEach(item =>{
@@ -34,7 +35,18 @@ module.exports = class Shop{
 
                 return text.join('\r\n');
             case 'buy':
-
+                //buy ItemId count
+                var itemId = fragments[2];
+                var quantity = parseInt(fragments[3]);
+                var playerId = this._me.UUID;
+                
+                log('buy item',{itemId:itemId, quantity:quantity, playerUUID:playerId},'info','info');
+                const result = await db.BuyShopItem(playerId,itemId,quantity);
+                if(result){
+                    return '[Shop Owner]Thank you for purchasing';
+                }else{
+                    return '[Shop Owner]Sorry, but the transaciton failed';
+                }
                 break;
         }
         return 'bye...';

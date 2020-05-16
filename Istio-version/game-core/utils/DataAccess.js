@@ -76,8 +76,17 @@ module.exports = class DataAccess {
             return null;
         }
     }
-    async BuyShopItem(itemId, quantity){
-        return await this.post('shop_items');
+    async BuyShopItem(playerId, itemId, quantity){
+        var resp = await this.post('shop_items/buy',{
+            playerUUID:playerId,
+            itemId:itemId,
+            quantity:quantity
+        });
+        if(resp){
+            return true;
+        }else{
+            return false;
+        }
     }
     //==============================
     //  Firestore

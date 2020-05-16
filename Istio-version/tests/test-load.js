@@ -48,6 +48,10 @@ function findVictim(players) {
     }
 }
 
+async function execute(ws, cmd){
+    
+}
+
 async function eventHandler(event) {
     console.log(`==>> ${event.data}`);
     var match = reg.exec(event.data);

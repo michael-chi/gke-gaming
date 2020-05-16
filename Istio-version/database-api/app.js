@@ -160,6 +160,24 @@ app.post('/matches', async function (req, res) {
 
 });
 //====  Shop
+app.post('/shop_items/buy', async function(req, res){
+    //  Buy item
+    /*
+        {
+{"playerUUID":"00000464-19cc-4223-a533-5e84bc0f08f9","itemId":"4748012b-1e1c-4b68-8d08-0dc2275ba6b9","quantity":1}
+        }
+    */
+    try {
+        log('post /shop_items/buy', { body: req.body });
+        var purchased = await data.BuyShopItem(req.body.playerUUID, req.body.itemId, req.body.quantity);
+        log('post /shop_items/buy', { result: { status: 'ok' , result: purchased} });
+        res.send({ status: 'ok' , data: purchased});
+    } catch (e) {
+        log('error post /shop_items', { error: e }, '', '');
+        throw e;
+    }
+});
+
 app.get('/shop_items', async function(req, res){
     try {
         log('get /shop_items');

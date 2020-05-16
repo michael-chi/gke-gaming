@@ -171,9 +171,9 @@ CREATE INDEX IX_ShopInventory_By_IsEnabledAndPromotion On ShopInventory(
 
 CREATE TABLE UserInventory (
     UUID STRING(36) NOT NULL,
-    ItemID STRING(24) NOT NULL,
+    ItemID STRING(36) NOT NULL,
+    ItemName STRING(36),
     PurchaseDate TIMESTAMP NOT NULL,
-    ItemName STRING(24),
     PurchasePrice INT64 NOT NULL,
     Quantity INT64 NOT NULL,
 ) PRIMARY KEY (UUID, ItemID),
