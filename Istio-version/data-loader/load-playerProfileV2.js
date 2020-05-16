@@ -93,7 +93,7 @@ async function go() {
                 users.push(user);
 
                 var playerClass = randomArbitrary(0, 3);
-                console.log(`playerClass=${playerClass}`);
+                //console.log(`playerClass=${playerClass}`);
                 
                 var avator = new Avator(user.PlayerId, 
                     user.Nickname,
@@ -108,10 +108,11 @@ async function go() {
                 avator.tags = tags.split(',');
                 avator.isOnline = false;
                 avator.createTime = Date.now();
-                console.log(`${JSON.stringify(avator.toJson())}`);
+                //console.log(`${JSON.stringify(avator.toJson())}`);
                 avatars.push(avator.toJson());
             }
             console.log('done. adding to Spanner:' + users.length);
+            users.sort();
 
             db.NewPlayerProfile(users);
             db.UpdatePlayer(avatars);

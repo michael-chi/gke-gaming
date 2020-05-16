@@ -2,7 +2,7 @@ var random_name = require('node-random-name');
 const { uuid } = require('uuidv4');
 require('dotenv').config();
 
-const Profile = require('../models/PlayerProfileV2');
+const Profile = require('../models/PlayerProfile');
 var random_name = require('node-random-name');
 
 const Classes = ['Warrior', 'Mage', 'Knight', 'Hunter'];
@@ -15,6 +15,7 @@ const time_end = new Date(2020, 5, 1, 23, 59, 59).getTime();
 
 
 const Spanner = require('../utils/spanner');
+
 
 
 function randomString(length) {
@@ -35,15 +36,24 @@ function sleep(s) {
     return new Promise(resolve => setTimeout(resolve, s * 1000));
 }
 async function go() {
+    var users = [];
+
+    const id = 'michael-test-id';
+    var user = new Profile(
+        id,
+        id + '@gmail.com',
+        id,
+        new Date(randomArbitrary(time_begin, time_end)),
+        false, 63);
     const spanner = new Spanner();
 
     try{
-        var s = Date.now();
-        var u = await spanner.readUserProfiles('Aurelio_Barry-iQQItt8ZPl');
-        var e = Date.now();
-
-        console.log(u);
-        console.log(e-s);
+        var u = spanner.newUserProfiles(user);
+        console.log(`done new : ${u}`);
+        user.email = id + '@ibm.com';
+        
+        u = await spanner.updateUserProfiles(user);
+        console.log('done. updating to Spanner:' + u.toString());
     }catch(e){
         console.log('==============');
         console.log(e);
