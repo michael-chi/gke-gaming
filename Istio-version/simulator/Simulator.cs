@@ -3,13 +3,31 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
 namespace simulator{
     public class Simulator{
         private ClientWebSocket _ws = null;
-        private string _host = null;    
-        public Simulator(string host){
+        private string _host = null;
+        private string _tag = null;
+        private string _dataApi = null;
+        public Simulator(string host, string dataApi, string tag){
             _ws = new ClientWebSocket();
             _host = host;
+            _tag = tag;
+            _dataApi = dataApi;
+        }
+        public async Task<string> GetPlayerAsync()
+        {
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
+
+            var stringTask = await client.GetStringAsync($"{_dataApi}/tests/getplayer/{_tag}");
+
+            return stringTask;
         }
         public async Task ConnectAsync(){
             await _ws.ConnectAsync(new Uri($"ws://{this._host}"), CancellationToken.None);
@@ -26,7 +44,7 @@ namespace simulator{
             return text;
         }
         public async Task<string> Do(string cmd, bool expectReturns = true){
-            Console.WriteLine(cmd);
+            Console.WriteLine($"[{DateTime.Now}]{cmd}");
             var buffer = new System.ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(cmd));
             await _ws.SendAsync(buffer,WebSocketMessageType.Text, true, CancellationToken.None);
             var result = new ArraySegment<byte>(new byte[1024]);
@@ -43,6 +61,7 @@ namespace simulator{
             var text = Encoding.UTF8.GetString(result.ToArray());
             Console.WriteLine(text);
             return text;
+
         }
     }
 }

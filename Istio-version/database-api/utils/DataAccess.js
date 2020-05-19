@@ -77,10 +77,6 @@ module.exports = class DataAccess {
         return await this._exec('ShopInventory', async () => {return await getSpanner().listShopItems();});
     }
     async BuyShopItem(playerUUID, itemId, quantity){
-        //  1. Check user balance
-        //  2. Calculate new balance and update UserProfile
-        //  3. update Inventory table
-        //  4. update transaction-histor table
         return await this._exec('BuyShopItem', async() =>{
             var result = await getSpanner().BuyShopItem(playerUUID,itemId, quantity);
 
@@ -93,9 +89,11 @@ module.exports = class DataAccess {
     async EnsurePlayer(playerId) {
         try {
             const player = await getFirestore().getPlayer(playerId);
+            await getSpanner().deposit(playerId, 100000);
+            const user = await getSpanner().readUserProfiles(playerId);
             if (player) {
                 log('EnsurePlayer succeed', {playerId:player},'DataAccess:EnsuerPlayer','info');
-                return player;
+                return {player:player, profile:user};
             } else {
                 return null;
             }

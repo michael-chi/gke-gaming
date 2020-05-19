@@ -36,9 +36,9 @@
       "frameworks": {
         "netcoreapp3.1": {
           "dependencies": {
-            "system.web.websockets": {
+            "System.Text.Json": {
               "target": "Package",
-              "version": "(, )"
+              "version": "[4.7.2, )"
             }
           },
           "imports": [

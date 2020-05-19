@@ -8,20 +8,19 @@ class FirestoreDatastore {
         this.datastore = new Datastore();
     }
 
-    updatePlayerState(player) {
-        log('updating game player data', player, 'GameWorldRealtimeStatStorage:updatePlayerState', 'info');
-
-        let docRef = this.db.collection('PlayerState').doc(`${player.name}`);
-        let msg = docRef.set({
-            id: uuid(),
-            name: player.name,
-            class: player.playerClass,
-            level: player.playerLv,
-            hp: player.hp,
-            mp: player.mp,
-            time: Date.now()
-        });
-    }
+    // updatePlayerState(player) {
+    //     log('updating game player data', player, 'GameWorldRealtimeStatStorage:updatePlayerState', 'info');
+    //     let docRef = this.db.collection('PlayerState').doc(`${player.name}`);
+    //     let msg = docRef.set({
+    //         id: uuid(),
+    //         name: player.name,
+    //         class: player.playerClass,
+    //         level: player.playerLv,
+    //         hp: player.hp,
+    //         mp: player.mp,
+    //         time: Date.now()
+    //     });
+    // }
     updateWorldwideMessages(issuer, target, message) {
         log('updating game world message', { issuer: issuer, target: target, message: message }, 'MockGameWorldRealtimeStatStorage:updateWorldwideMessages', 'info');
 
@@ -71,12 +70,6 @@ class FirestoreDatastore {
 
             throw err;
         }
-        // let docRef = this.db.collection('GameWorldStastics').doc(`${uuid()}-${Date.now().toPrecision()}`);
-        // let message = docRef.set({
-        //     id: uuid(),
-        //     time: Date.now(),
-        //     players: players
-        // });
     }
     async getGameServerStastics(id) {
         const key = this.datastore.key({
@@ -121,18 +114,6 @@ class FirestoreDatastore {
         var user = await this.datastore.get(key);
         if (user && user.length > 0) {
             return user[0];
-            //var resp = Object.assign(new User(),user[0]);
-            // var resp = new User(user[0].playerId,
-            //     user[0].name,
-            //     user[0].playerClass,
-            //     user[0].hp,
-            //     user[0].mp,
-            //     user[0].playerLv,
-            //     null,
-            //     user[0].id
-            // );
-            //log('===>>>',{user:resp},'','');
-            return resp;
         } else {
             return null;
         }
@@ -185,8 +166,6 @@ class FirestoreDatastore {
     async upsertPlayer(player) {
         //TODO:
         var target = this._convertToEntities(player, 'mud', 'players', (item) => item.playerId);
-        //console.log('=========');
-        //console.log(JSON.stringify(target));
         try {
             await this.datastore.save(target);
             log(`Player created successfully.`, {}, 'firestore_datastore.js:upsertPlayer()', 'info');

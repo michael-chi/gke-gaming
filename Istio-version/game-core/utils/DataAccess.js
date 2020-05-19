@@ -94,7 +94,8 @@ module.exports = class DataAccess {
     async EnsurePlayer(playerId){
         try{
             const resp = await this.get(`players/${playerId}`);
-            const player = resp.data;
+            const player = resp.data.player;
+            
             log('EnsurePlayer REST API result',{playerId:playerId,player:player},'','debug');
             //return Object.assign(new User(), player);//new User(player.name, player.playerClass, player.hp, player.mp, player.playerLv, null, player.id);
             var user = new User(
@@ -111,6 +112,7 @@ module.exports = class DataAccess {
             );
             user.tags = player.tags;
             user.isOnline = true;
+            user.profile = resp.data.profile;
             return user;
         }catch(ex){
             log('error EnsurePlayer',{error:ex, playerId:playerId}, 'DataAccess:EnsuerPlayer','error');

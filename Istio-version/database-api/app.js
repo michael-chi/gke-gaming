@@ -223,6 +223,14 @@ app.get('/matches/:id', async function (req, res) {
     }
 
 });
+//====  Internal Tests
+app.get('/tests/getplayer/:tag',async (req, res) =>{
+    const Test = require('./internal/test');
+    var test = new Test();
+    var player = await test.getRandomPlayer(req.params.tag);
+
+    res.send({status:'ok', data:player});
+});
 
 process.on('uncaughtException', function (err) {
     console.log('Caught exception: ' + err);

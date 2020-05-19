@@ -11,9 +11,9 @@ spec:
     app: mud
   ports:
   - protocol: TCP
-    port: 11111
+    port: 11112
     name: mud
-    targetPort: 11111
+    targetPort: 11112
 #   type: ClusterIP
 ---
 apiVersion: apps/v1
@@ -51,18 +51,18 @@ spec:
             #       effect: NoSchedule
             containers:
             -   name: mud
-                image: gcr.io/kalschi-istio/mud:gke-v30
+                image: gcr.io/kalschi-istio/mud:gke-v33
                 imagePullPolicy: Always
                 ports:
                     -   name: ws
-                        containerPort: 11111
+                        containerPort: 11112
                 livenessProbe:
                     tcpSocket:
-                        port: 11111
+                        port: 11112
                     initialDelaySeconds: 30
                 readinessProbe:
                     tcpSocket:
-                        port: 11111
+                        port: 11112
                     initialDelaySeconds: 30
                 resources:
                     requests:

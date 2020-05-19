@@ -51,7 +51,7 @@ spec:
             #       effect: NoSchedule
             containers:
             -   name: data-api
-                image: gcr.io/kalschi-istio/data-api:v11
+                image: gcr.io/kalschi-istio/data-api:v24
                 imagePullPolicy: Always
                 ports:
                     -   name: ws

@@ -36,13 +36,7 @@ function default_write_formatter(row) {
 }
 
 module.exports = class CloudSpanner {
-    constructor(read_formatter, write_formatter) {
-        try {
-            this.read_formatter = read_formatter ? read_formatter : default_read_formatter;
-            this.write_formatter = write_formatter ? write_formatter : default_write_formatter;
-        } catch (err) {
-            log('error constructing CloudSpanner', err, 'CloudSpanner.js::constructor', 'error');
-        }
+    constructor() {
     }
     getSpannerDatabase() {
         try {
@@ -70,7 +64,7 @@ module.exports = class CloudSpanner {
                         result = callback(options, transaction);
                         //await transaction.commit();
                         var e = Date.now();
-                        log('_runTransactions completed', { duration: (e - s) }, '_runTransactions', 'debug');
+                        log('spanner server duration', { duration: (e - s), result: result }, '_runTransactions', 'debug');
                     } catch (ex) {
                         log('_runTransactions exception (inner)', { error: ex, options: options }, 'CloudSpanner.js:_runTransactions:runTransaction', 'error');
                         throw ex;
@@ -85,7 +79,7 @@ module.exports = class CloudSpanner {
             }
         });
     }
-    
+
     async _runMutation(records, callback) {
         var target = [];
         if (records instanceof Array) {
@@ -110,7 +104,7 @@ module.exports = class CloudSpanner {
                     );
                     await transaction.commit();
                     var e = Date.now();
-                    log('_runMutation completed', { duration: (e - s) }, '_runMutation', 'debug');
+                    log('spanner server duration', { duration: (e - s) }, '_runMutation', 'debug');
                 } catch (ex) {
                     log('_runMutation exception (inner)', { error: ex }, 'CloudSpanner.js:_runMutation:runTransaction', 'error');
                     throw ex;
@@ -131,7 +125,7 @@ module.exports = class CloudSpanner {
             const [rows] = await database.run(query);
 
             var e = Date.now();
-            log(`_querySpanner result`, { rows: rows, time: (e - s) }, '_querySpanner', 'info');
+            log(`spanner server duration`, { rows: rows, duration: (e - s) }, '_querySpanner', 'info');
             var results = [];
             rows.forEach(
                 row => callback(row, results)
@@ -236,8 +230,124 @@ module.exports = class CloudSpanner {
         } finally {
         }
     }
+    async deposit(playerId, amount) {
+        return await this._runTransactionsEx(
+            {
+                playerId: playerId,
+                amount: amount
+            },
+            async (options, tx) => {
+            try {
+                const [upResults] = await tx.runUpdate({
+                    sql: 'update UserProfile set Balance = Balance + @amount where PlayerId=@playerId',
+                    params: {
+                        playerId: playerId,
+                        amount: amount
+                    }
+                });
+                tx.commit();
+                return upResults;
+            } catch (ex) {
+                throw ex;
+            }
+        });
+    }
     //  TODO:
     async BuyShopItem(playerUUID, itemID, quantity) {
+        //  1. Check user balance
+        //  2. Calculate new balance and update UserProfile
+        //  3. update Inventory table
+        //  4. update transaction-histor table
+        //return await this._exec('BuyShopItem', async () => 
+        {
+            return await this._runTransactionsEx(
+                {
+                    playerUUID: playerUUID,
+                    itemID: itemID,
+                    quantity: quantity
+                },
+                async (options, tx) => {
+                    const [upResults] = await tx.run({
+                        sql: 'SELECT UUID, PlayerId, Balance FROM UserProfile where UUID=@uuid',
+                        params: {
+                            uuid: playerUUID
+                        }
+                    });
+                    const [siResults] = await tx.run({
+                        sql: 'SELECT Price, ItemName FROM ShopInventory where ItemID=@itemId',
+                        params: {
+                            itemId: itemID
+                        }
+                    });
+
+                    console.log(`upResults=${JSON.stringify(upResults)}`);
+                    const user = upResults[0].toJSON();
+                    if (siResults.length == 0) {
+                        tx.end();
+                        return false;
+                    }
+                    const item = siResults[0].toJSON();
+                    var playerId = user.PlayerId;
+                    var balance = user.Balance;
+                    var cost = parseInt(item.Price) * quantity;
+
+                    if (balance >= cost) {
+                        var newBalance = balance - cost;
+
+                        const [uiResults] = await tx.run({
+                            sql: 'SELECT u.UUID, u.PlayerId, u.Balance, s.ItemID, s.Quantity FROM UserProfile u join UserInventory s on u.UUID = s.UUID where u.UUID=@uuid',
+                            params: {
+                                uuid: playerUUID
+                            }
+                        });
+                        console.log(`============ ${JSON.stringify(uiResults[0])} ==========`);
+                        if (uiResults && uiResults.length > 0) {
+                            console.log('============ EXISTING PURCHASE ==========');
+                            var newRecord = {
+                                UUID: playerUUID,
+                                ItemID: itemID,
+                                ItemName: item.ItemName,
+                                PurchaseDate: Spanner.timestamp(Date.now()),
+                                PurchasePrice: parseInt(item.Price),
+                                Quantity: quantity + uiResults[0].toJSON().Quantity
+                            };
+                            console.log(JSON.stringify(newRecord));
+                            tx.upsert('UserInventory', newRecord);
+                        } else {
+                            console.log('============ NEW PURCHASE ==========');
+                            tx.upsert('UserInventory', {
+                                UUID: playerUUID,
+                                ItemID: itemID,
+                                ItemName: item.ItemName,
+                                PurchaseDate: Spanner.timestamp(Date.now()),
+                                PurchasePrice: parseInt(item.Price),
+                                Quantity: quantity
+                            });
+                        }
+                        tx.insert('TransactionHistory', {
+                            PlayerId: playerId,
+                            UUID: uuid(),
+                            PurchasedItemID: itemID,
+                            PurchasedQuantity: quantity,
+                            StoreChannelID: 'Online',
+                            TransactionTime: Spanner.timestamp(Date.now())
+                        });
+                        tx.update('UserProfile', {
+                            UUID: playerUUID,
+                            Balance: newBalance
+                        });
+                        tx.commit();
+                        return true;
+                    } else {
+                        tx.end();
+                        return false;
+                    }
+                }
+            );
+        }
+    }
+    //  TODO:
+    async BuyShopItem_V1(playerUUID, itemID, quantity) {
         //  1. Check user balance
         //  2. Calculate new balance and update UserProfile
         //  3. update Inventory table
@@ -261,6 +371,10 @@ module.exports = class CloudSpanner {
                     });
                     console.log(`upResults=${JSON.stringify(upResults)}`);
                     const user = upResults[0].toJSON();
+                    if (siResults.length == 0) {
+                        tx.end();
+                        return false;
+                    }
                     const item = siResults[0].toJSON();
                     var playerId = user.PlayerId;
                     var balance = user.Balance;

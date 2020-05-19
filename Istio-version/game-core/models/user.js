@@ -27,6 +27,8 @@ class User {
         this._lastLoginTime = lastLoginTime;
         this._createTime = createTime;
     }
+    set profile(value){this._profile = value;}
+    get profile(){return this._profile;}
     get maxHp(){return this._maxHp;}
     get maxMp(){return this._maxMp;}
     set maxHp(value){this._maxHp = value;}
@@ -69,21 +71,7 @@ class User {
     quit(){
         this.emit('quit',this);
     }
-    // attack(target){
-    //     console.log(`${this._self.name} | ${target.name}`)
-    //     if(this._self._state != CONSTS.PlayerState.STATE_NORMAL){
-    //         return new InGameMessage(this._self.name, 'you are dying, you can\'t do anything now...');
-    //     }
-    //     for(var i =0; i < this._skills.length; i++){
-    //         if(Math.random() >= 0.2){
-    //             this.emit('attack', {actor:this, skill:this._skills[i].name});
-    //             return this._skills[i].attack(this._self, target);
-    //         }else{
-    //             this.emit('missed', {actor:this});
-    //         }
-    //     }
-    //     return new InGameMessage('*', `${this._self.name} stands still...`);
-    // }
+    
     get playerId(){
         return this._playerId;
     }
@@ -154,7 +142,7 @@ class User {
         };
     }
     toString(){
-        return `==================\r\n${this.name}\r\n--------------\r\nlevel ${this.playerLv} ${this.playerClass}\r\nHP:${this.hp}\tMP:${this.mp}\r\n==================`;
+        return `==================\r\n${this.name}\r\n--------------\r\nlevel ${this.playerLv} ${this.playerClass}\r\nHP:${this.hp}\tMP:${this.mp}\r\nBalance:${this._profile.Balance}\r\n==================`;
     }
 };
 util.inherits(User, Emitter);

@@ -22,6 +22,7 @@ module.exports = class SkillManager {
         
         var victim = null;
         var skill = null;
+        
         if(!Skill){
             log('invalid skill',{player:this.player.name,skill:null, target:target, original:cmd}, 'SkillManager:do', 'info');
             return new InGameMessage(this.player.name,`What are you trying to do ?`);
@@ -33,6 +34,7 @@ module.exports = class SkillManager {
             skill = new Skill(this.player);
             log('player skill',{player:this.player.name,skill:skill.name, target:target, original:cmd}, 'SkillManager:do', 'info');
         }
+        const start = Date.now();
         if(skill.attack){
             if(target){
                 victim = this.findPlayerFunc(target);
@@ -40,9 +42,11 @@ module.exports = class SkillManager {
             if(victim){
                 var msg = skill.attack(victim);
                 log('attack',{player:this.player.name,skill:skill.name, target:target, original:cmd,message:msg.message}, 'SkillManager:do', 'info');
+                log('client call api duration',{duration: Date.now() - start,skill:skill}, 'factory:do()', 'info')
                 return new InGameMessage(this.player.name,msg.message);;
             }else{
                 log('attack',{player:this.player.name,skill:skill.name, target:target, original:cmd, message:'no target'}, 'SkillManager:do', 'info');
+                log('client call api duration',{duration: Date.now() - start,skill:skill}, 'factory:do()', 'info')
                 return new InGameMessage(this.player.name,`who are you looking at ?`);
             }
         }else if(skill.describe){
@@ -51,9 +55,12 @@ module.exports = class SkillManager {
             }
             console.log(`${this.player}`);
             log('describe',{player:this.player.name,skill:skill.name, target:target, original:cmd, message:'no target'}, 'SkillManager:do', 'info');
-            return skill.describe(this.player, victim);
+            var msg = skill.describe(this.player, victim);
+            log('client call api duration',{duration: Date.now() - start,skill:skill}, 'factory:do()', 'info')
+            return msg;   
         }else if(skill.command){
             var msg = await skill.command(fragments);
+            log('client call api duration',{duration: Date.now() - start,skill:skill}, 'factory:do()', 'info')
             return new InGameMessage(this.player.name, msg);
         }
 
