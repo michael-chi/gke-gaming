@@ -1,0 +1,13 @@
+/home/michi/src/mygame/Istio-version/simulator/bin/Release/netcoreapp3.1/simulator
+/home/michi/src/mygame/Istio-version/simulator/bin/Release/netcoreapp3.1/simulator.deps.json
+/home/michi/src/mygame/Istio-version/simulator/bin/Release/netcoreapp3.1/simulator.runtimeconfig.json
+/home/michi/src/mygame/Istio-version/simulator/bin/Release/netcoreapp3.1/simulator.runtimeconfig.dev.json
+/home/michi/src/mygame/Istio-version/simulator/bin/Release/netcoreapp3.1/simulator.dll
+/home/michi/src/mygame/Istio-version/simulator/bin/Release/netcoreapp3.1/simulator.pdb
+/home/michi/src/mygame/Istio-version/simulator/bin/Release/netcoreapp3.1/System.Text.Json.dll
+/home/michi/src/mygame/Istio-version/simulator/obj/Release/netcoreapp3.1/simulator.csprojAssemblyReference.cache
+/home/michi/src/mygame/Istio-version/simulator/obj/Release/netcoreapp3.1/simulator.AssemblyInfoInputs.cache
+/home/michi/src/mygame/Istio-version/simulator/obj/Release/netcoreapp3.1/simulator.AssemblyInfo.cs
+/home/michi/src/mygame/Istio-version/simulator/obj/Release/netcoreapp3.1/simulator.csproj.CopyComplete
+/home/michi/src/mygame/Istio-version/simulator/obj/Release/netcoreapp3.1/simulator.dll
+/home/michi/src/mygame/Istio-version/simulator/obj/Release/netcoreapp3.1/simulator.pdb

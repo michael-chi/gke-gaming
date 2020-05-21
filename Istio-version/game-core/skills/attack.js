@@ -23,7 +23,8 @@ module.exports = class Attack{
                 var msg = this.do_attack(target);
                 return msg;
             } else {
-                return new InGameMessage('*', 'W#@$F...something went wrong!');
+                // return new InGameMessage('*', 'W#@$F...something went wrong!');
+                return new InGameMessage(this._me.name, 'W#@$F...something went wrong!');
             }
         }        
     }
@@ -39,10 +40,12 @@ module.exports = class Attack{
                 var result = this._me.skills[i].attack(this._me, target);
                 log('===============',{target:target});
                 this._me.emit('attack', {actor:this._me, skill:this._me._skills[i].name,target:target,result:result.message});
-                return new InGameMessage('*', result.message.message);
+                //return new InGameMessage('*', result.message.message);
+                return new InGameMessage(this._me.name, result.message.message);
             }
         }
         this._me.emit('missed', {actor:this._me, skill:this._me._skills[i].name,target:target,result:null});
-        return new InGameMessage('*', `${this._me.name} missed the shot...`);
+        //return new InGameMessage('*', `${this._me.name} missed the shot...`);
+        return new InGameMessage(this._me.name, `${this._me.name} missed the shot...`);
     }
 }

@@ -21,10 +21,10 @@ module.exports = class Room
     }
     join(user){
         this._players.set(user.playerId, user);
-        this._broadcast('*',`Yo! ${user.name}(${user.playerId}) just joined this match.`);
+        this._broadcast(user.name,`Yo! ${user.name}(${user.playerId}) just joined this match.`);
     }
     leave(user){
-        this._broadcast('*',`Yo! ${user.name} just leave this match.`);
+        //this._broadcast('*',`Yo! ${user.name} just leave this match.`);
         console.log(`delete ${user.name} from collection:${this._players.delete(user.id)}`);
     }
     get roomId (){return this._roomId;}
@@ -35,12 +35,12 @@ module.exports = class Room
         var cmd = command.split(' ')[0];
         var target = command.split(' ')[1];
         if(cmd != 'attack'){
-            this._broadcast('*',`${user.name} don\'t know what to do.`);
+           // this._broadcast('*',`${user.name} don\'t know what to do.`);
         }else if(!this._players[target]){
-            this._broadcast('*',`${user.name} can\'t find his/her target !`);
+            //this._broadcast('*',`${user.name} can\'t find his/her target !`);
         }else{
             var message = player.attack(this._players[target]);
-            this._broadcast('*',message);
+            this._broadcast(player.name, message);
         }
     }
 }

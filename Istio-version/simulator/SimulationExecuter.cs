@@ -37,7 +37,8 @@ namespace simulator{
             }catch(Exception ex){
                 Debug($"FindVictim Exception:text={text}");
                 Debug($"FindVictim Exception:Exception={ex.Message}");
-                throw ex;
+                
+                return null;
             }
         }
         void Buy(PlayerInfo info, double chance){

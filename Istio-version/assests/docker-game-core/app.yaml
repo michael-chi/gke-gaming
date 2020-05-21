@@ -4,7 +4,7 @@ metadata:
   name: mud
   annotations:
     # cloud.google.com/neg: '{"ingress": true}'
-    # beta.cloud.google.com/backend-config: '{"ports": {"9999":"mud-backendconfig"}}'
+    beta.cloud.google.com/backend-config: '{"ports": {"11112":"mud-backendconfig"}}'
 spec:
   sessionAffinity: ClientIP 
   selector:
@@ -29,7 +29,7 @@ spec:
     selector:
         matchLabels:
             app: mud
-    replicas: 1
+    replicas: 10
     template:
         metadata:
             labels:
@@ -51,7 +51,7 @@ spec:
             #       effect: NoSchedule
             containers:
             -   name: mud
-                image: gcr.io/kalschi-istio/mud:gke-v33
+                image: gcr.io/kalschi-istio/mud:gke-v37
                 imagePullPolicy: Always
                 ports:
                     -   name: ws
@@ -66,8 +66,8 @@ spec:
                     initialDelaySeconds: 30
                 resources:
                     requests:
-                        cpu: 100m
-                        memory: 3.5G   
+                        cpu: 1000m
+                        memory: 7G   
                 env:
                     - name: DATAAPI_URL
                       valueFrom:

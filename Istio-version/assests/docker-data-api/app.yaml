@@ -29,7 +29,7 @@ spec:
     selector:
         matchLabels:
             app: data-api
-    replicas: 1
+    replicas: 3
     template:
         metadata:
             labels:
@@ -51,7 +51,7 @@ spec:
             #       effect: NoSchedule
             containers:
             -   name: data-api
-                image: gcr.io/kalschi-istio/data-api:v24
+                image: gcr.io/kalschi-istio/data-api:v26
                 imagePullPolicy: Always
                 ports:
                     -   name: ws

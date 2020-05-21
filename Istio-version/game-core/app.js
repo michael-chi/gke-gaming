@@ -98,13 +98,13 @@ websocketServer.on('connection', async (ws, req) => {
             } catch (e) {
                 console.log('2');
                 console.log(e);
-                throw e;
+                //throw e;
             }
         });
     } catch (err) {
         console.log('1');
         console.log(err);
-        throw err;
+        //throw err;
     }
 });
 

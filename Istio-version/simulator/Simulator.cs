@@ -20,12 +20,17 @@ namespace simulator{
         }
         public async Task<string> GetPlayerAsync()
         {
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
+            string stringTask = null;
+            do{
+                Task.Delay(3000).Wait();
+                HttpClient client = new HttpClient();
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
 
-            var stringTask = await client.GetStringAsync($"{_dataApi}/tests/getplayer/{_tag}");
+                stringTask = await client.GetStringAsync($"{_dataApi}/tests/getplayer/{_tag}");
+
+            }while(String.IsNullOrEmpty(stringTask));
 
             return stringTask;
         }
@@ -40,8 +45,12 @@ namespace simulator{
             var result = new ArraySegment<byte>(new byte[1024]);
             await _ws.ReceiveAsync(result, CancellationToken.None);
             var text = Encoding.UTF8.GetString(result.ToArray());
-            Console.WriteLine(text);
-            return text;
+            if(text.StartsWith("Yo!")){
+                return await ReceiveAsync();
+            }else{
+                Console.WriteLine(text);
+                return text;
+            }
         }
         public async Task<string> Do(string cmd, bool expectReturns = true){
             Console.WriteLine($"[{DateTime.Now}]{cmd}");

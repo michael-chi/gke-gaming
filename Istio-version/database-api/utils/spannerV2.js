@@ -53,7 +53,7 @@ module.exports = class CloudSpanner {
             try {
                 database = this.getSpannerDatabase();
                 database.runTransaction(async (err, transaction) => {
-                    var s = Date.now();
+                    
                     var result = null;
                     if (err) {
                         console.log(err);
@@ -61,10 +61,12 @@ module.exports = class CloudSpanner {
                         return rej(err);
                     }
                     try {
+                        var s = Date.now();
                         result = callback(options, transaction);
                         //await transaction.commit();
                         var e = Date.now();
-                        log('spanner server duration', { duration: (e - s), result: result }, '_runTransactions', 'debug');
+                        var dur = e - s;
+                        log('spanner server duration', { duration: dur, result: result }, '_runTransactions', 'debug');
                     } catch (ex) {
                         log('_runTransactions exception (inner)', { error: ex, options: options }, 'CloudSpanner.js:_runTransactions:runTransaction', 'error');
                         throw ex;
@@ -104,7 +106,8 @@ module.exports = class CloudSpanner {
                     );
                     await transaction.commit();
                     var e = Date.now();
-                    log('spanner server duration', { duration: (e - s) }, '_runMutation', 'debug');
+                    var dur = e - s;
+                    log('spanner server duration', { duration: dur }, '_runMutation', 'debug');
                 } catch (ex) {
                     log('_runMutation exception (inner)', { error: ex }, 'CloudSpanner.js:_runMutation:runTransaction', 'error');
                     throw ex;
@@ -120,12 +123,11 @@ module.exports = class CloudSpanner {
     async _querySpanner(query, callback) {
         try {
             var s = Date.now();
-
             var database = this.getSpannerDatabase();
             const [rows] = await database.run(query);
-
             var e = Date.now();
-            log(`spanner server duration`, { rows: rows, duration: (e - s) }, '_querySpanner', 'info');
+            var dur = e - s;
+            log(`spanner server duration`, { rows: rows, duration: dur }, '_querySpanner', 'info');
             var results = [];
             rows.forEach(
                 row => callback(row, results)
@@ -280,7 +282,7 @@ module.exports = class CloudSpanner {
                         }
                     });
 
-                    console.log(`upResults=${JSON.stringify(upResults)}`);
+                    console.log(`upResults=${JSON.stringify(upResults)} | ${playerUUID}`);
                     const user = upResults[0].toJSON();
                     if (siResults.length == 0) {
                         tx.end();
