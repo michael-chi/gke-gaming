@@ -1,0 +1,92 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: data-api
+  annotations:
+    # cloud.google.com/neg: '{"ingress": true}'
+    # beta.cloud.google.com/backend-config: '{"ports": {"9999":"mud-backendconfig"}}'
+spec:
+  sessionAffinity: ClientIP 
+  selector:
+    app: data-api
+  ports:
+  - protocol: TCP
+    port: 9998
+    name: data-api
+    targetPort: 9998
+#   type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: data-api
+spec:
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 1
+        #   maxUnavailable: 25%
+    selector:
+        matchLabels:
+            app: data-api
+    replicas: 3
+    template:
+        metadata:
+            labels:
+                app: data-api
+        spec:
+            # affinity:
+            #     nodeAffinity:
+            #       requiredDuringSchedulingIgnoredDuringExecution:
+            #         nodeSelectorTerms:
+            #         - matchExpressions:
+            #           - key: dedicated
+            #             operator: In
+            #             values: 
+            #             - mud
+            # tolerations:
+            #     - key: dedicated
+            #       operator: Equal
+            #       value: mud
+            #       effect: NoSchedule
+            containers:
+            -   name: data-api
+                image: gcr.io/kalschi-istio/data-api:v26
+                imagePullPolicy: Always
+                ports:
+                    -   name: ws
+                        containerPort: 9998
+                livenessProbe:
+                    tcpSocket:
+                        port: 9998
+                    initialDelaySeconds: 30
+                readinessProbe:
+                    tcpSocket:
+                        port: 9998
+                    initialDelaySeconds: 30
+                resources:
+                    requests:
+                        cpu: 100m
+                        memory: 1G   
+                env:
+                    - name: PROJECT_ID
+                      valueFrom:
+                        configMapKeyRef:
+                            name: data-api-config
+                            key: PROJECT_ID
+                    - name: INSTANCE_ID
+                      valueFrom:
+                        configMapKeyRef:
+                            name: data-api-config
+                            key: INSTANCE_ID
+                    - name: DATABASE_ID
+                      valueFrom:
+                        configMapKeyRef:
+                            name: data-api-config
+                            key: DATABASE_ID
+                    - name: LOCAL_MODE
+                      valueFrom:
+                        configMapKeyRef:
+                            name: data-api-config
+                            key: LOCAL_MODE
+                

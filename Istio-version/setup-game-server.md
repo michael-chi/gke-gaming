@@ -44,9 +44,17 @@ spec:
         host: mud
       weight: 100
 ```
+
+修改`./assests/docker-game-core/configMap.yaml`, 將DATAAPI_URL修改為遠端GKE Load Balancer的位址
+```yaml
+  - address: xxx.xxx.xxx.xxx
+```
+
 部署Game Server到GKE上
 ```shell
 gcloud container clusters get-credentials gke2 --region asia-northeast1 --project kalschi-istio
+kubectl apply -f ./assests/docker-game-core/configMap.yaml 
+kubectl apply -f ./assests/docker-game-core/dataapi-svc-entry.yaml 
 kubectl apply -f ./assests/docker-game-core/app.yaml 
 kubectl apply -f ./assests/docker-game-core/route.yaml 
 ```

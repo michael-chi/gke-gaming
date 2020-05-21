@@ -2,14 +2,14 @@
 require('dotenv').config();
 
 //const Spanner = require('./utils/spanner');
-const DataStoreFactory = require('./utils/dataStoreFactory');
 const Room = require('./models/room');
 const GameEventHandler = require('./utils/gameEventHandler');
 const CommandManager = require('./skills/factory');
 const log = require('./utils/logger');
+const DataAPI = require('./utils/DataAccess');
 
-const dataStoreFactory = new DataStoreFactory();
-const serverPort = 9999,
+const dataApi = new DataAPI();
+const serverPort = 11112,
     http = require("http"),
     express = require("express"),
     app = express(),
@@ -18,30 +18,28 @@ const serverPort = 9999,
     websocketServer = new WebSocket.Server({ server });
 
 var room = null;
-
 const CLIENTS = new Map();
-const CLIENT_SOCKETS = new Map();
+var bootstrapper = new GameEventHandler();
 
 app.get('/', function (req, res) {
     res.send('ok');
 });
-var bootstrapper = new GameEventHandler();
 
 //when a websocket connection is established
 websocketServer.on('connection', async (ws, req) => {
     try {
         //send feedback to the incoming connection
         const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-        log(req);
         const port = req.connection.remotePort;
         const clientName = ip + ':' + port;
+        var currentPlayer = null;
         log('client connected', { clientName: `${clientName}` }, 'app.js:websocketServer:onConnect', 'info');
         if (room == null) {
             room = new Room(null);
             //room, firestore, ws, clients
             bootstrapper.configureRoom(room, websocketServer, CLIENTS);
         }
-        ws.send(clientName + ' type login [name] to login to the game');
+        ws.send(clientName + ' type login [id] to login to the game');
         ws.on('message', async function message(message) {
             try {
                 log('message received', { clientName: `${clientName}`, message: message }, 'app.js:websocketServer:onMessage', 'info');
@@ -54,39 +52,42 @@ websocketServer.on('connection', async (ws, req) => {
                 //  But not now...
                 if (message.startsWith('login ')) {
                     var name = message.split(' ')[1];
-                    var spanner = dataStoreFactory.getSpanner();
-                    var user = await spanner.EnsurePlayer(name);
-                    //var user = await Spanner.EnsurePlayer(name);
-                    log('player login', { player: `${name}` }, 'app.js:websocketServer:onMessage(login)', 'info');
+                    currentPlayer = await dataApi.EnsurePlayer(name);
+                    if(!currentPlayer){
+                        ws.send(`user ${name} does not exists`);
+                        ws.close();
+                    }else{
+                        log('player login', { player: `${name}` }, 'app.js:websocketServer:onMessage(login)', 'info');
 
-                    //  Setup event handler so we get everything happened in the game world
-                    bootstrapper.configurePlayer(user, room);
+                        //  Setup event handler so we get everything happened in the game world
+                        bootstrapper.configurePlayer(currentPlayer, room);
+                        currentPlayer.login();
 
-                    user.login();
+                        CLIENTS.set(currentPlayer.name, ws);
+                        room.join(currentPlayer);
 
-                    CLIENTS.set(user.name, ws);
-                    CLIENT_SOCKETS.set(clientName, user.name);
-                    room.join(user);
+                        log('check room players',{players:room.who()},'app.js','info');
+                    }
                 } else if (message == 'quit') {
-                    var me = room.players.get(CLIENT_SOCKETS.get(clientName));
+                    //var me = room.players.get(CLIENT_SOCKETS.get(clientName));
                     //broadcast(CLIENT_SOCKETS.get(clientName), 'bye');
-                    CLIENTS.delete(me.name);
-                    CLIENT_SOCKETS.delete(clientName);
+                    CLIENTS.delete(currentPlayer.name);
 
                     ws.close();
-                    room.leave(me);
-                    me.quit();
+                    room.leave(currentPlayer);
+                    currentPlayer.quit();
 
-                    log('player quit', {player:me.name}, 'app.js:websocketServer:onMessage(quit)', 'info');
+                    log('player quit', {player:currentPlayer.name}, 'app.js:websocketServer:onMessage(quit)', 'info');
 
                 }
                 else {
-                    var factory = new CommandManager(room.players.get(CLIENT_SOCKETS.get(clientName)),
+                    var factory = new CommandManager(//room.players.get(CLIENT_SOCKETS.get(clientName)),
+                        currentPlayer,
                         function (name) {
                             return room.players.get(name);
                         },
                         room);
-                    var msg = factory.do(message);
+                    var msg = await factory.do(message);
                     if (msg) {
                         room.broadcast(msg.notifyUser, msg.message);
                     }
@@ -97,11 +98,13 @@ websocketServer.on('connection', async (ws, req) => {
             } catch (e) {
                 console.log('2');
                 console.log(e);
+                //throw e;
             }
         });
     } catch (err) {
         console.log('1');
         console.log(err);
+        //throw err;
     }
 });
 
@@ -115,3 +118,4 @@ server.listen(serverPort, () => {
         log(`error when Websocket server starting on port ` + serverPort, ex, 'app.js', 'error');
     }
 });
+

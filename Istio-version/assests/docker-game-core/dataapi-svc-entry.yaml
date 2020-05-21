@@ -1,0 +1,20 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: external-svc-http
+spec:
+  hosts: 
+  - data.default.global
+  location: MESH_INTERNAL
+  ports:
+  - number: 80
+    name: http1
+    protocol: HTTP
+  resolution: DNS
+  addresses:
+  - 240.0.0.7
+  endpoints:
+  - address: 35.188.137.20
+    ports:
+      http1: 15443
+
